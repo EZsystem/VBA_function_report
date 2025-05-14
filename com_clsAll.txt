@@ -1,0 +1,721 @@
+'=== [ExportDate] 2025-05-14 ===
+'=== [File] com_clsArrayHelper.cls ===
+'=====================================
+' Class Module: com_clsArrayHelper
+' 説明　：2次元配列の解析や演算を提供するユーティリティ
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private arrData As Variant
+
+'=================================================
+' プロパティ名 : Let data
+' 引数 : value - 2次元配列データ
+' 機能 : 処理対象となる2次元配列データ（タイトル＋データ）を保持するにゃ
+'=================================================
+Public Property Let data(value As Variant)
+    arrData = value
+End Property
+
+'=================================================
+' 関数名 : GetColIndex
+' 引数 : colName - 探索する列名
+' 戻り値 : 対応する列番号（見つからないときは -1）
+' 機能 : 配列の1行目（タイトル行）から、列名に対応する列番号を取得するにゃ
+'=================================================
+Public Function GetColIndex(colName As String) As Long
+    Dim j As Long
+    For j = LBound(arrData, 2) To UBound(arrData, 2)
+        If arrData(1, j) = colName Then
+            GetColIndex = j
+            Exit Function
+        End If
+    Next j
+    GetColIndex = -1
+End Function
+
+'=================================================
+' 関数名 : CalculateOneRow
+' 引数 : row - 対象行番号
+'        col1, col2 - 計算対象の列名
+'        op - 演算子（add, sub, mul, div）
+'        doRound, digits - 丸め設定（オプション）
+' 戻り値 : 計算結果（Double）
+' 機能 : 指定行の2列間で指定された演算を実行し、必要に応じて丸めて返すにゃ
+'=================================================
+Public Function CalculateOneRow(row As Long, col1 As String, col2 As String, op As String, Optional doRound As Boolean = False, Optional digits As Integer = 0) As Double
+    Dim i1 As Long, i2 As Long
+    i1 = GetColIndex(col1)
+    i2 = GetColIndex(col2)
+    If i1 = -1 Or i2 = -1 Then Err.Raise vbObjectError + 100, , "列名が見つかりません"
+    Dim v1 As Double: v1 = CDbl(arrData(row, i1))
+    Dim v2 As Double: v2 = CDbl(arrData(row, i2))
+    Dim res As Double
+    Select Case op
+        Case "add": res = v1 + v2
+        Case "sub": res = v1 - v2
+        Case "mul": res = v1 * v2
+        Case "div": If v2 <> 0 Then res = v1 / v2 Else res = 0
+        Case Else: Err.Raise vbObjectError + 101, , "不正な演算子"
+    End Select
+    If doRound And digits >= 0 Then res = Round(res, digits)
+    CalculateOneRow = res
+End Function
+
+'=================================================
+' 関数名 : CalculateIfMatch
+' 引数 : row - 行番号
+'        condCol - 条件列名
+'        expVal - 条件一致値
+'        col1, col2 - 計算対象列名
+'        op - 演算子
+'        doRound, digits - 丸め設定（オプション）
+' 戻り値 : 計算結果（条件一致時のみ）
+' 機能 : 指定列の値が条件値と一致する行に対してのみ、計算を実行して返すにゃ
+'=================================================
+Public Function CalculateIfMatch(row As Long, condCol As String, expVal As Variant, col1 As String, col2 As String, op As String, Optional doRound As Boolean = False, Optional digits As Integer = 0) As Double
+    Dim idx As Long: idx = GetColIndex(condCol)
+    If idx = -1 Then Err.Raise vbObjectError + 102, , "条件列が見つかりません"
+    If arrData(row, idx) <> expVal Then
+        CalculateIfMatch = 0: Exit Function
+    End If
+    CalculateIfMatch = CalculateOneRow(row, col1, col2, op, doRound, digits)
+End Function
+
+'=================================================
+' 関数名 : IsValueEqual
+' 引数 : row, colName, expected
+' 機能 : 指定行・列の値が expected と等しいかを判定するにゃ
+'=================================================
+Public Function IsValueEqual(row As Long, colName As String, expected As Variant) As Boolean
+    Dim idx As Long: idx = GetColIndex(colName)
+    If idx = -1 Then Exit Function
+    IsValueEqual = (arrData(row, idx) = expected)
+End Function
+
+'=================================================
+' 関数名 : IsBlank
+' 引数 : row, colName
+' 機能 : 指定セルが空欄かどうかを判定するにゃ（空文字または NULL）
+'=================================================
+Public Function IsBlank(row As Long, colName As String) As Boolean
+    Dim idx As Long: idx = GetColIndex(colName)
+    If idx = -1 Then Exit Function
+    IsBlank = (Trim(arrData(row, idx) & "") = "")
+End Function
+
+'=================================================
+' 関数名 : IsGreaterThan
+' 引数 : row, colName, threshold
+' 機能 : 指定セルの数値が閾値より大きいかを判定するにゃ
+'=================================================
+Public Function IsGreaterThan(row As Long, colName As String, threshold As Double) As Boolean
+    Dim idx As Long: idx = GetColIndex(colName)
+    If idx = -1 Then Exit Function
+    If IsNumeric(arrData(row, idx)) Then IsGreaterThan = (arrData(row, idx) > threshold)
+End Function
+
+'=================================================
+' 関数名 : IsBetween
+' 引数 : row, colName, minVal, maxVal
+' 機能 : 指定セルの値が範囲内（minVal?maxVal）にあるかを判定するにゃ
+'=================================================
+Public Function IsBetween(row As Long, colName As String, minVal As Double, maxVal As Double) As Boolean
+    Dim idx As Long: idx = GetColIndex(colName)
+    If idx = -1 Then Exit Function
+    If IsNumeric(arrData(row, idx)) Then IsBetween = (arrData(row, idx) >= minVal And arrData(row, idx) <= maxVal)
+End Function
+
+'=================================================
+' 関数名 : Contains
+' 引数 : row, colName, keyword
+' 機能 : セル内に指定キーワードが含まれているかを判定するにゃ（部分一致）
+'=================================================
+Public Function Contains(row As Long, colName As String, keyword As String) As Boolean
+    Dim idx As Long: idx = GetColIndex(colName)
+    If idx = -1 Then Exit Function
+    Contains = (InStr(1, arrData(row, idx) & "", keyword, vbTextCompare) > 0)
+End Function
+
+'=================================================
+' 関数名 : StartsWith
+' 引数 : row, colName, prefix
+' 機能 : セル値が指定の prefix で始まっているかを判定するにゃ
+'=================================================
+Public Function StartsWith(row As Long, colName As String, prefix As String) As Boolean
+    Dim idx As Long: idx = GetColIndex(colName)
+    If idx = -1 Then Exit Function
+    StartsWith = (Left(arrData(row, idx) & "", Len(prefix)) = prefix)
+End Function
+
+'=================================================
+' 関数名 : EndsWith
+' 引数 : row, colName, suffix
+' 機能 : セル値が指定の suffix で終わっているかを判定するにゃ
+'=================================================
+Public Function EndsWith(row As Long, colName As String, suffix As String) As Boolean
+    Dim idx As Long: idx = GetColIndex(colName)
+    If idx = -1 Then Exit Function
+    EndsWith = (Right(arrData(row, idx) & "", Len(suffix)) = suffix)
+End Function
+
+'=================================================
+' 関数名 : GetValue
+' 引数 : row, colName
+' 機能 : 指定セルの値を返すにゃ（Variant）
+'=================================================
+Public Function GetValue(row As Long, colName As String) As Variant
+    Dim idx As Long: idx = GetColIndex(colName)
+    If idx = -1 Then Exit Function
+    GetValue = arrData(row, idx)
+End Function
+
+'=================================================
+' 関数名 : GetNumericValue
+' 引数 : row, colName
+' 機能 : 指定セルの数値値を返すにゃ（非数値や空欄は 0 にする）
+'=================================================
+Public Function GetNumericValue(row As Long, colName As String) As Double
+    Dim v As Variant: v = GetValue(row, colName)
+    If IsNumeric(v) Then GetNumericValue = CDbl(v) Else GetNumericValue = 0
+End Function
+
+'=================================================
+' 関数名 : ToTextArray
+' 説明   : 任意の2次元配列のすべての値を文字列として整形して返す
+'         Null・数値・改行・空白を安全に変換する
+' 引数   : sourceArray（Variant） 元の2次元配列（行, 列）
+' 戻り値 : Variant（2次元配列）   文字列化された配列
+'=================================================
+Public Function ToTextArray(sourceArray As Variant) As Variant
+    Dim sanitizer As acc_clsTextSanitizer
+    Set sanitizer = New acc_clsTextSanitizer
+
+    Dim rowCount As Long
+    Dim colCount As Long
+
+    rowCount = UBound(sourceArray, 1)
+    colCount = UBound(sourceArray, 2)
+
+    Dim resultArray() As String
+    ReDim resultArray(1 To rowCount, 1 To colCount)
+
+    Dim r As Long, c As Long
+    For r = 1 To rowCount
+        For c = 1 To colCount
+            resultArray(r, c) = sanitizer.CleanText(sourceArray(r, c))
+        Next c
+    Next r
+
+    ToTextArray = resultArray
+End Function    ' ← ToTextArray 終了
+
+
+'=== [File] com_clsCalcHelper.cls ===
+'=====================================
+' Class Module: com_clsCalcHelper
+' 説明　：四則演算＋数値補正機能を提供する共通ヘルパークラスにゃ！
+' 作成日：2025/04/26
+' 作成者：そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+'=====================================
+' 関数名 : SafeAdd
+' 説明　 : NULL安全な加算にゃ
+'=====================================
+Public Function SafeAdd(a As Variant, b As Variant) As Double
+    SafeAdd = Nz(a, 0) + Nz(b, 0)
+End Function
+
+'=====================================
+' 関数名 : SafeSubtract
+' 説明　 : NULL安全な減算にゃ
+'=====================================
+Public Function SafeSubtract(a As Variant, b As Variant) As Double
+    SafeSubtract = Nz(a, 0) - Nz(b, 0)
+End Function
+
+'=====================================
+' 関数名 : SafeMultiply
+' 説明　 : NULL安全な乗算にゃ
+'=====================================
+Public Function SafeMultiply(a As Variant, b As Variant) As Double
+    SafeMultiply = Nz(a, 0) * Nz(b, 0)
+End Function
+
+'=====================================
+' 関数名 : SafeDivide
+' 説明　 : NULL安全な除算、0除算回避にゃ
+'=====================================
+Public Function SafeDivide(a As Variant, b As Variant, Optional defaultValue As Double = 0) As Double
+    If Nz(b, 0) = 0 Then
+        SafeDivide = defaultValue
+    Else
+        SafeDivide = Nz(a, 0) / Nz(b, 0)
+    End If
+End Function
+
+'=====================================
+' 関数名 : RoundToNDecimals
+' 説明　 : 任意小数点位で四捨五入するにゃ
+'=====================================
+Public Function RoundToNDecimals(val As Variant, decimals As Integer) As Double
+    RoundToNDecimals = Round(Nz(val, 0), decimals)
+End Function
+
+'=====================================
+' 関数名 : FloorToNDecimals
+' 説明　 : 任意小数点位で切り捨てするにゃ
+'=====================================
+Public Function FloorToNDecimals(val As Variant, decimals As Integer) As Double
+    Dim factor As Double
+    factor = 10 ^ decimals
+    FloorToNDecimals = Int(Nz(val, 0) * factor) / factor
+End Function
+
+'=====================================
+' 関数名 : CeilToNDecimals
+' 説明　 : 任意小数点位で切り上げするにゃ
+'=====================================
+Public Function CeilToNDecimals(val As Variant, decimals As Integer) As Double
+    Dim factor As Double
+    factor = 10 ^ decimals
+    CeilToNDecimals = -Int(-Nz(val, 0) * factor) / factor
+End Function
+
+
+'=== [File] com_clsDateMath.cls ===
+'=====================================
+' Class Module: com_clsDateMath
+' 説明　：日付文字列の解析や期間計算を行うユーティリティ
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private pRawValue As String
+Private pYear     As Integer
+Private pMonth    As Integer
+Private pDay      As Integer
+Private pIsValid  As Boolean
+Private Const BASE_YEAR As Integer = 2012
+
+'=================================================
+' プロパティ名 : rawValue
+' 引数 : v - 日付文字列（例: "202404", "20240401"）
+' 機能 : 生データ文字列を格納し、解析処理（ParseValue）を実行するにゃ
+'=================================================
+Public Property Let rawValue(v As String)
+    pRawValue = Trim(v)
+    ParseValue
+End Property
+
+Public Property Get rawValue() As String
+    rawValue = pRawValue
+End Property
+
+'=================================================
+' プロパティ名 : IsValid
+' 機能 : 格納された日付が正しい形式（存在する日付）であるかを返すにゃ
+'=================================================
+Public Property Get IsValid() As Boolean
+    IsValid = pIsValid
+End Property
+
+'=================================================
+' 関数名 : GetYear
+' 機能 : 解析された年（4桁）を返すにゃ
+'=================================================
+Public Function GetYear() As Integer
+    GetYear = pYear
+End Function
+
+'=================================================
+' 関数名 : GetMonth
+' 機能 : 解析された月（1?12）を返すにゃ
+'=================================================
+Public Function GetMonth() As Integer
+    GetMonth = pMonth
+End Function
+
+'=================================================
+' 関数名 : GetDay
+' 機能 : 解析された日（固定：1 または 文字列から抽出）を返すにゃ
+'=================================================
+Public Function GetDay() As Integer
+    GetDay = pDay
+End Function
+
+'=================================================
+' 関数名 : GetDateValue
+' 機能 : 年月日を合成して日付型で返すにゃ（無効な場合は Null）
+'=================================================
+Public Function GetDateValue() As Variant
+    If pIsValid Then
+        GetDateValue = DateSerial(pYear, pMonth, pDay)
+    Else
+        GetDateValue = Null
+    End If
+End Function
+
+'=================================================
+' 関数名 : GetFiscalYear
+' 機能 : 3月を区切りとして会計年度を返すにゃ（1?3月は前年に補正）
+'=================================================
+Public Function GetFiscalYear() As Integer
+    Dim fy As Integer
+    fy = pYear
+    If pMonth >= 1 And pMonth <= 3 Then fy = fy - 1
+    GetFiscalYear = fy
+End Function
+
+'=================================================
+' 関数名 : GetPeriod
+' 機能 : 基準年（BASE_YEAR）との差分を返すにゃ（経過年数などに使うにゃ）
+'=================================================
+Public Function GetPeriod() As Integer
+    GetPeriod = GetFiscalYear() - BASE_YEAR
+End Function
+
+'=================================================
+' 関数名 : GetQuarter
+' 機能 : 会計上の四半期（1?4）を返すにゃ（4?6月：第1四半期 など）
+'=================================================
+Public Function GetQuarter() As Integer
+    Select Case pMonth
+        Case 4 To 6: GetQuarter = 1
+        Case 7 To 9: GetQuarter = 2
+        Case 10 To 12: GetQuarter = 3
+        Case 1 To 3: GetQuarter = 4
+        Case Else: GetQuarter = 0
+    End Select
+End Function
+
+'=================================================
+' サブルーチン名 : ParseValue
+' 機能 : 文字列（6桁 or 8桁）から年・月・日を抽出し、日付の正当性を検証するにゃ
+'=================================================
+Private Sub ParseValue()
+    Dim s As String: s = pRawValue
+    pIsValid = False
+    If Len(s) = 6 Then
+        On Error GoTo ErrLbl
+        pYear = CInt(Left(s, 4))
+        pMonth = CInt(Right(s, 2))
+        pDay = 1
+        pIsValid = ValidateDate(pYear, pMonth, pDay)
+    ElseIf Len(s) = 8 Then
+        On Error GoTo ErrLbl
+        pYear = CInt(Left(s, 4))
+        pMonth = CInt(Mid(s, 5, 2))
+        pDay = CInt(Right(s, 2))
+        pIsValid = ValidateDate(pYear, pMonth, pDay)
+    End If
+    Exit Sub
+ErrLbl:
+    pIsValid = False
+End Sub
+
+'=================================================
+' 関数名 : ValidateDate
+' 引数 : y, m, d - 年月日
+' 機能 : 指定された年月日が有効な日付かを検証するにゃ（DateSerial を使用）
+'=================================================
+Private Function ValidateDate(y As Integer, m As Integer, d As Integer) As Boolean
+    On Error GoTo ErrLbl2
+    Dim dt As Date: dt = DateSerial(y, m, d)
+    ValidateDate = True
+    Exit Function
+ErrLbl2:
+    ValidateDate = False
+End Function
+
+'=================================================
+' 関数名 : RoundToDigits
+' 引数 : val - 四捨五入対象の値
+'        digits - 小数点以下の桁数
+' 機能 : 指定桁数で四捨五入された値を返すにゃ
+'=================================================
+Public Function RoundToDigits(val As Variant, digits As Long) As Double
+    Dim factor As Double: factor = 10 ^ digits
+    RoundToDigits = Round(CDbl(val) * factor, 0) / factor
+End Function
+
+
+'=== [File] com_clsErrorUtility.cls ===
+'=====================================
+' Class Module: com_clsErrorUtility
+' 説明　：エラーの収集・表示および既定値取得を提供するユーティリティ
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private pErrors    As Collection
+Private pDebugMode As Boolean
+
+'=================================================
+' サブルーチン名 : Initialize
+' 引数 : debugMode（省略可）- デバッグ出力の有無（初期値：True）
+' 機能 : エラー記録用のコレクションを初期化し、デバッグモードを設定するにゃ
+'=================================================
+Public Sub Initialize(Optional debugMode As Boolean = True)
+    Set pErrors = New Collection
+    pDebugMode = debugMode
+End Sub
+
+'=================================================
+' サブルーチン名 : LogError
+' 引数 : title - エラータイトル
+'        details - エラー詳細メッセージ
+' 機能 : エラー情報をログとしてコレクションに追加し、デバッグモード時は即時出力も行うにゃ
+'=================================================
+Public Sub LogError(title As String, details As String)
+    Dim msg As String
+    msg = "■■■ " & title & " (" & Now & ") ■■■" & vbCrLf & details
+    If pDebugMode Then Debug.Print msg
+    pErrors.Add msg
+End Sub
+
+'=================================================
+' サブルーチン名 : ShowAllErrors
+' 引数 : showInMsgBox（省略可）- MsgBoxで表示するかどうか
+' 機能 : 記録されたすべてのエラーログを一括表示（またはデバッグ出力）するにゃ
+'=================================================
+Public Sub ShowAllErrors(Optional showInMsgBox As Boolean = True)
+    Dim errMsg As String
+    Dim i As Long
+    If pErrors.Count = 0 Then
+        If showInMsgBox Then MsgBox "エラーはありません。", vbInformation
+        Exit Sub
+    End If
+    For i = 1 To pErrors.Count
+        errMsg = errMsg & pErrors(i) & vbCrLf
+    Next i
+    If showInMsgBox Then
+        MsgBox errMsg, vbExclamation, "エラー一覧"
+    Else
+        Debug.Print errMsg
+    End If
+End Sub
+
+'=================================================
+' プロパティ名 : Get ErrorCount
+' 機能 : 記録されているエラーの件数を返すにゃ
+'=================================================
+Public Property Get ErrorCount() As Long
+    ErrorCount = pErrors.Count
+End Property
+
+'=================================================
+' 関数名 : GetDefaultValue
+' 引数 : fieldType - フィールド型（DAO定数）
+'        value - 入力値（Variant）
+' 戻り値 : 適切な初期値（型別）
+' 機能 : フィールド型と値の内容に応じて、適切な初期値を返すにゃ
+'        NULLや不正な数値などを補完する安全対策用関数にゃ
+'=================================================
+Public Function GetDefaultValue(fieldType As Integer, value As Variant) As Variant
+    On Error Resume Next
+    Select Case fieldType
+        Case dbText, dbMemo
+            If IsNull(value) Or value = "" Then
+                GetDefaultValue = "N/A"
+            Else
+                GetDefaultValue = value
+            End If
+        Case dbInteger, dbLong, dbByte
+            If IsNull(value) Or Not IsNumeric(value) Then
+                GetDefaultValue = 0
+            ElseIf CDbl(value) < -2147483648# Or CDbl(value) > 2147483647# Then
+                GetDefaultValue = 0
+            Else
+                GetDefaultValue = CLng(value)
+            End If
+        Case dbBigInt
+            If IsNull(value) Or Not IsNumeric(value) Then
+                GetDefaultValue = 0
+            Else
+                GetDefaultValue = CDec(value)
+            End If
+        Case dbDouble, dbSingle, dbCurrency
+            If IsNull(value) Or Not IsNumeric(value) Then
+                GetDefaultValue = 0
+            Else
+                GetDefaultValue = CDbl(value)
+            End If
+        Case dbDate
+            If IsNull(value) Then
+                GetDefaultValue = #1/1/1910#
+            Else
+                GetDefaultValue = value
+            End If
+        Case dbBoolean
+            If IsNull(value) Then
+                GetDefaultValue = False
+            Else
+                GetDefaultValue = CBool(value)
+            End If
+        Case Else
+            GetDefaultValue = Null
+    End Select
+    On Error GoTo 0
+End Function
+
+
+'=== [File] com_clsFileHelper.cls ===
+'=====================================
+' Class Module: com_clsFileHelper
+' 説明　：ファイル存在確認やファイル入出力操作を提供するユーティリティ
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+'（このクラスでは内部変数はありません）
+
+'=================================================
+' 関数名 : FileExists
+' 引数 : path - 確認対象のファイルパス
+' 機能 : 指定パスのファイルが存在するかどうかを返すにゃ
+'=================================================
+Public Function FileExists(path As String) As Boolean
+    FileExists = (Dir(path) <> "")
+End Function
+
+'=================================================
+' 関数名 : GetFileName
+' 引数 : path - フルパス文字列
+' 機能 : フルパスからファイル名部分だけを抽出して返すにゃ
+'=================================================
+Public Function GetFileName(path As String) As String
+    GetFileName = Mid(path, InStrRev(path, "\") + 1)
+End Function
+
+'=================================================
+' 関数名 : GetFolder
+' 引数 : path - フルパス文字列
+' 機能 : フルパスからフォルダパス部分を抽出して返すにゃ
+'=================================================
+Public Function GetFolder(path As String) As String
+    GetFolder = Left(path, InStrRev(path, "\") - 1)
+End Function
+
+'=================================================
+' 関数名 : ReadTextFile
+' 引数 : path - 読込対象のファイルパス
+' 戻り値 : ファイルの全内容（文字列）
+' 機能 : 指定されたテキストファイルを開いて内容を一括読込するにゃ
+'        存在しない場合はエラーを出すにゃ
+'=================================================
+Public Function ReadTextFile(path As String) As String
+    Dim txt As String, f As Integer
+    If Not FileExists(path) Then Err.Raise vbObjectError + 200, , "ファイルがありません"
+    f = FreeFile
+    Open path For Input As #f
+    txt = Input$(LOF(f), f)
+    Close #f
+    ReadTextFile = txt
+End Function
+
+'=================================================
+' サブルーチン名 : WriteTextFile
+' 引数 : path - 出力先ファイルパス
+'        content - 書き込み内容
+' 機能 : 指定されたパスにテキストを書き込むにゃ（上書きモード）
+'=================================================
+Public Sub WriteTextFile(path As String, content As String)
+    Dim f As Integer
+    f = FreeFile
+    Open path For Output As #f
+    Print #f, content
+    Close #f
+End Sub
+
+
+'=== [File] com_clsStringHelper.cls ===
+'=====================================
+' Class Module: com_clsStringHelper
+' 説明　：文字列分割・結合、大小文字変換、検索・置換を提供するユーティリティ
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+'（このクラスでは内部変数はありません）
+
+'=================================================
+' 関数名 : SplitToArray
+' 引数 : s - 区切る対象の文字列
+'        delimiter - 区切り文字
+' 戻り値 : 分割後の文字列配列（Variant）
+' 機能 : 指定した文字列を区切り文字で分割して配列として返すにゃ
+'=================================================
+Public Function SplitToArray(s As String, delimiter As String) As Variant
+    SplitToArray = Split(s, delimiter)
+End Function
+
+'=================================================
+' 関数名 : JoinArray
+' 引数 : arr - 結合対象の配列
+'        delimiter - 結合に使う文字
+' 機能 : 配列内の要素を指定の区切り文字で連結し、文字列として返すにゃ
+'=================================================
+Public Function JoinArray(arr As Variant, delimiter As String) As String
+    JoinArray = Join(arr, delimiter)
+End Function
+
+'=================================================
+' 関数名 : ToUpper
+' 引数 : s - 対象文字列
+' 機能 : 指定された文字列をすべて大文字に変換して返すにゃ
+'=================================================
+Public Function ToUpper(s As String) As String
+    ToUpper = UCase(s)
+End Function
+
+'=================================================
+' 関数名 : ToLower
+' 引数 : s - 対象文字列
+' 機能 : 指定された文字列をすべて小文字に変換して返すにゃ
+'=================================================
+Public Function ToLower(s As String) As String
+    ToLower = LCase(s)
+End Function
+
+'=================================================
+' 関数名 : ContainsText
+' 引数 : s - 対象文字列
+'        keyword - 検索語句
+' 機能 : 文字列 s に keyword が含まれているかを判定して返すにゃ（大文字小文字は無視）
+'=================================================
+Public Function ContainsText(s As String, keyword As String) As Boolean
+    ContainsText = (InStr(1, s, keyword, vbTextCompare) > 0)
+End Function
+
+'=================================================
+' 関数名 : ReplaceAll
+' 引数 : s - 対象文字列
+'        find - 検索語句
+'        repl - 置換文字列
+' 機能 : 文字列 s に含まれる find を repl にすべて置換して返すにゃ
+'=================================================
+Public Function ReplaceAll(s As String, find As String, repl As String) As String
+    ReplaceAll = Replace(s, find, repl)
+End Function
+
+

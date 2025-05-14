@@ -1,0 +1,151 @@
+'=== [ExportDate] 2025-05-14 ===
+所属フォルダ / 所属ファイル - ファイル種別 - 定義種別 関数名 : 説明
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function GetColIndex : 配列の1行目（タイトル行）から、列名に対応する列番号を取得するにゃ
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function CalculateOneRow : 指定行の2列間で指定された演算を実行し、必要に応じて丸めて返すにゃ
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function CalculateIfMatch : 指定列の値が条件値と一致する行に対してのみ、計算を実行して返すにゃ
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function IsValueEqual : 指定行・列の値が expected と等しいかを判定するにゃ
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function IsBlank : 指定セルが空欄かどうかを判定するにゃ（空文字または NULL）
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function IsGreaterThan : 指定セルの数値が閾値より大きいかを判定するにゃ
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function IsBetween : 指定セルの値が範囲内（minVal?maxVal）にあるかを判定するにゃ
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function Contains : セル内に指定キーワードが含まれているかを判定するにゃ（部分一致）
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function StartsWith : セル値が指定の prefix で始まっているかを判定するにゃ
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function EndsWith : セル値が指定の suffix で終わっているかを判定するにゃ
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function GetValue : 指定セルの値を返すにゃ（Variant）
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function GetNumericValue : 指定セルの数値値を返すにゃ（非数値や空欄は 0 にする）
+[com_clsAll] com_clsArrayHelper.cls - クラス - Function ToTextArray : 任意の2次元配列のすべての値を文字列として整形して返す
+[com_clsAll] com_clsCalcHelper.cls - クラス - Function SafeAdd : NULL安全な加算にゃ
+[com_clsAll] com_clsCalcHelper.cls - クラス - Function SafeSubtract : NULL安全な減算にゃ
+[com_clsAll] com_clsCalcHelper.cls - クラス - Function SafeMultiply : NULL安全な乗算にゃ
+[com_clsAll] com_clsCalcHelper.cls - クラス - Function SafeDivide : NULL安全な除算、0除算回避にゃ
+[com_clsAll] com_clsCalcHelper.cls - クラス - Function RoundToNDecimals : 任意小数点位で四捨五入するにゃ
+[com_clsAll] com_clsCalcHelper.cls - クラス - Function FloorToNDecimals : 任意小数点位で切り捨てするにゃ
+[com_clsAll] com_clsCalcHelper.cls - クラス - Function CeilToNDecimals : 任意小数点位で切り上げするにゃ
+[com_clsAll] com_clsDateMath.cls - クラス - Function GetYear : 解析された年（4桁）を返すにゃ
+[com_clsAll] com_clsDateMath.cls - クラス - Function GetMonth : 解析された月（1?12）を返すにゃ
+[com_clsAll] com_clsDateMath.cls - クラス - Function GetDay : 解析された日（固定：1 または 文字列から抽出）を返すにゃ
+[com_clsAll] com_clsDateMath.cls - クラス - Function GetDateValue : 年月日を合成して日付型で返すにゃ（無効な場合は Null）
+[com_clsAll] com_clsDateMath.cls - クラス - Function GetFiscalYear : 3月を区切りとして会計年度を返すにゃ（1?3月は前年に補正）
+[com_clsAll] com_clsDateMath.cls - クラス - Function GetPeriod : 基準年（BASE_YEAR）との差分を返すにゃ（経過年数などに使うにゃ）
+[com_clsAll] com_clsDateMath.cls - クラス - Function GetQuarter : 会計上の四半期（1?4）を返すにゃ（4?6月：第1四半期 など）
+[com_clsAll] com_clsDateMath.cls - クラス - Sub ParseValue : 文字列（6桁 or 8桁）から年・月・日を抽出し、日付の正当性を検証するにゃ
+[com_clsAll] com_clsDateMath.cls - クラス - Function ValidateDate : 指定された年月日が有効な日付かを検証するにゃ（DateSerial を使用）
+[com_clsAll] com_clsDateMath.cls - クラス - Function RoundToDigits : 指定桁数で四捨五入された値を返すにゃ
+[com_clsAll] com_clsErrorUtility.cls - クラス - Sub Initialize : エラー記録用のコレクションを初期化し、デバッグモードを設定するにゃ
+[com_clsAll] com_clsErrorUtility.cls - クラス - Sub LogError : エラー情報をログとしてコレクションに追加し、デバッグモード時は即時出力も行うにゃ
+[com_clsAll] com_clsErrorUtility.cls - クラス - Sub ShowAllErrors : 記録されたすべてのエラーログを一括表示（またはデバッグ出力）するにゃ
+[com_clsAll] com_clsErrorUtility.cls - クラス - Function GetDefaultValue : フィールド型と値の内容に応じて、適切な初期値を返すにゃ
+[com_clsAll] com_clsFileHelper.cls - クラス - Function FileExists : 指定パスのファイルが存在するかどうかを返すにゃ
+[com_clsAll] com_clsFileHelper.cls - クラス - Function GetFileName : フルパスからファイル名部分だけを抽出して返すにゃ
+[com_clsAll] com_clsFileHelper.cls - クラス - Function GetFolder : フルパスからフォルダパス部分を抽出して返すにゃ
+[com_clsAll] com_clsFileHelper.cls - クラス - Function ReadTextFile : 指定されたテキストファイルを開いて内容を一括読込するにゃ
+[com_clsAll] com_clsFileHelper.cls - クラス - Sub WriteTextFile : 指定されたパスにテキストを書き込むにゃ（上書きモード）
+[com_clsAll] com_clsStringHelper.cls - クラス - Function SplitToArray : 指定した文字列を区切り文字で分割して配列として返すにゃ
+[com_clsAll] com_clsStringHelper.cls - クラス - Function JoinArray : 配列内の要素を指定の区切り文字で連結し、文字列として返すにゃ
+[com_clsAll] com_clsStringHelper.cls - クラス - Function ToUpper : 指定された文字列をすべて大文字に変換して返すにゃ
+[com_clsAll] com_clsStringHelper.cls - クラス - Function ToLower : 指定された文字列をすべて小文字に変換して返すにゃ
+[com_clsAll] com_clsStringHelper.cls - クラス - Function ContainsText : 文字列 s に keyword が含まれているかを判定して返すにゃ（大文字小文字は無視）
+[com_clsAll] com_clsStringHelper.cls - クラス - Function ReplaceAll : 文字列 s に含まれる find を repl にすべて置換して返すにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function CleanText : NULL補完＋Trimして安全な文字列を返すにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function CleanNumber : NULL補完＋数値型に安全変換するにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function CleanDate : NULL補完＋日付型に安全変換するにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function TextToInteger : テキスト型をInteger型に安全変換するにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function TextToLong : テキスト型をLong型に安全変換するにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function TextToSingle : テキスト型をSingle型に安全変換するにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function TextToDouble : テキスト型をDouble型に安全変換するにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function TextToCurrency : テキスト型をCurrency型に安全変換するにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function TextToDate : テキスト型を日付型に安全変換するにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function TextToBoolean : テキスト型をブール型に変換するにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function IsNumericStrict : 厳密な数値判定をするにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function IsDateStrict : 厳密な日付判定をするにゃ
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function GetSupportedVBAType : 日本語のAccess型名をVBA型名に変換する
+[acc_clsAll] acc_clsDataCleaner.cls - クラス - Function TextToString : テキスト型に安全に変換するにゃ（Null→""）
+[acc_clsAll] acc_clsDbConnector.cls - クラス - Sub Init : DAO.Database オブジェクト（CurrentDb）を初期化して保持するにゃ
+[acc_clsAll] acc_clsDbConnector.cls - クラス - Sub ExecuteSQL : SQL文を現在のDB接続で実行するにゃ。エラーハンドリングも対応にゃ
+[acc_clsAll] acc_clsExcelImporter.cls - クラス - Sub Init : データベース接続（CurrentDb）および各種辞書オブジェクトを初期化するにゃ
+[acc_clsAll] acc_clsExcelImporter.cls - クラス - Sub PrepareFieldNames : 見出しの非空列を抽出し、列位置とマッピングを登録するにゃ
+[acc_clsAll] acc_clsExcelImporter.cls - クラス - Sub PrepareMappings_ByTitleMatch_Flexible : タイトルと同じ値でマッピングを構成するにゃ
+[acc_clsAll] acc_clsExcelImporter.cls - クラス - Sub PrepareMappings_ByImportTable : 指定された取込設定テーブルからマッピング定義を読み取り、項目名の対応関係を構成するにゃ
+[acc_clsAll] acc_clsExcelImporter.cls - クラス - Sub ImportFromArray : 配列データを行ごとに処理し、スキップ条件と初期値補完を考慮しながら仮テーブルへ登録するにゃ
+[acc_clsAll] acc_clsExcelImporter.cls - クラス - Function ShouldSkip : 取込対象データがスキップ条件に一致するかを判定するにゃ
+[acc_clsAll] acc_clsExcelImporter.cls - クラス - Sub CommitToMain : 仮テーブル（TempTableName）の内容を本テーブル（tableName）へ一括で登録するにゃ
+[acc_clsAll] acc_clsExcelImporter.cls - クラス - Sub ImportFromWorksheet : 指定行列からタイトルとデータを取得し、ImportFromArray に渡す
+[acc_clsAll] acc_clsFieldReplacer.cls - クラス - Sub Init : DAOデータベースの初期化
+[acc_clsAll] acc_clsFieldReplacer.cls - クラス - Sub SetTargetTable : 対象となるテーブル名を設定する
+[acc_clsAll] acc_clsFieldReplacer.cls - クラス - Sub SetTargetFields : 処理対象のフィールド名を限定的に指定する
+[acc_clsAll] acc_clsFieldReplacer.cls - クラス - Sub LoadMapping : マスタテーブルから置換マッピングを読み込む
+[acc_clsAll] acc_clsFieldReplacer.cls - クラス - Sub ReplaceFieldNames : フィールド名（F1など）をキーに、1レコードの値を置換する
+[acc_clsAll] acc_clsFieldReplacer.cls - クラス - Sub ReplaceFieldValues : 各レコードの中身を置換マスタに基づいて更新する
+[acc_clsAll] acc_clsFieldReplacer.cls - クラス - Sub ReplaceIfMatch : 指定されたフィールドに対して、辞書に一致すれば置換する
+[acc_clsAll] acc_clsFieldReplacer.cls - クラス - Function IsInArray : 指定した文字列が配列内に存在するか確認する
+[acc_clsAll] acc_clsTableCleaner.cls - クラス - Sub Init : DAO.Database を初期化し、テーブル名格納用の Collection を作成するにゃ
+[acc_clsAll] acc_clsTableCleaner.cls - クラス - Sub AddTable : クレンジングや削除対象として保持するテーブル名をリストに追加するにゃ
+[acc_clsAll] acc_clsTableCleaner.cls - クラス - Sub ClearAll : 登録されている全テーブルに対して DELETE 文を発行し、中身を全削除するにゃ
+[acc_clsAll] acc_clsTableTransfer.cls - クラス - Sub Init : データベースを初期化し、転送設定（pSettings）用の Collection を作成するにゃ
+[acc_clsAll] acc_clsTableTransfer.cls - クラス - Sub AddSetting : テーブル転送の設定（転送元・転送先・キー）を1件分コレクションに追加するにゃ
+[acc_clsAll] acc_clsTableTransfer.cls - クラス - Sub ExecuteAll : 登録されたすべての転送設定を元に、テーブル転送（TransferTable）を実行するにゃ
+[acc_clsAll] acc_clsTableTransfer.cls - クラス - Sub TransferTable : 転送先の既存データをキーで削除後、転送元の全件を挿入するにゃ
+[acc_clsAll] acc_clsTableUpdater.cls - クラス - Sub Init : CurrentDb を初期化し、対象テーブル名を内部に保持するにゃ
+[acc_clsAll] acc_clsTableUpdater.cls - クラス - Function OpenRS : 指定テーブルを開いて編集可能なレコードセットを返すにゃ
+[acc_clsAll] acc_clsTableUpdater.cls - クラス - Sub UpdateFieldFromField : src の値を tgt にコピーするフィールド更新処理にゃ（NULL補完付き）
+[acc_clsAll] acc_clsTableUpdater.cls - クラス - Sub UpdateFieldFromDiff : a - b の結果を tgt に格納する差分計算処理にゃ
+[acc_clsAll] acc_clsTableUpdater.cls - クラス - Sub UpdateFieldByConcat : a と b の値を "a_b" の形式で連結し、tgt に格納するにゃ
+[acc_clsAll] acc_clsTableUpdater.cls - クラス - Sub UpdateFieldWithCondition : 条件に応じて valField か altFunc の結果を tgt に設定するにゃ
+[acc_clsAll] acc_clsTextSanitizer.cls - クラス - Function CleanText : 値を文字列化し、空白と改行を除去する
+[acc_clsAll] acc_clsTextSanitizer.cls - クラス - Function IsEmptyText : 値がNullまたは空文字かを判定する
+[acc_clsAll] acc_clsTextSanitizer.cls - クラス - Function RemoveInvisibleChars : ノンブレークスペースや制御文字を削除する
+[acc_clsAll] acc_clsTextSanitizer.cls - クラス - Function CleanWithFallback : Nullまたは空欄の場合、代替文字列を返す
+[acc_clsAll] acc_clsTransactionManager.cls - クラス - Sub Init : データベースを初期化し、トランザクション未開始状態に設定するにゃ
+[acc_clsAll] acc_clsTransactionManager.cls - クラス - Sub BeginTransaction : トランザクションを開始するにゃ
+[acc_clsAll] acc_clsTransactionManager.cls - クラス - Sub Commit : トランザクションをコミットして確定するにゃ
+[acc_clsAll] acc_clsTransactionManager.cls - クラス - Sub Rollback : トランザクションをロールバックして元に戻すにゃ
+[xl_clsAll] xl_clsRangeAccessor.cls - クラス - Function RangeToArray : 指定範囲の値を配列として取得するにゃ
+[xl_clsAll] xl_clsRangeAccessor.cls - クラス - Sub ArrayToRange : 配列データを指定範囲に一括で書き込むにゃ
+[xl_clsAll] xl_clsRangeAccessor.cls - クラス - Function GetLastRow : 指定列の最下端までのうち、最終データ行を取得するにゃ
+[xl_clsAll] xl_clsRangeAccessor.cls - クラス - Function GetLastColumn : 指定行の右端までのうち、最終データ列を取得するにゃ
+[xl_clsAll] xl_clsSheetManager.cls - クラス - Function SheetExists : 指定されたシートが Workbook 内に存在するかどうかを判定するにゃ
+[xl_clsAll] xl_clsSheetManager.cls - クラス - Function GetSheet : 指定されたシートを取得して返すにゃ（存在しない場合はエラーを出すにゃ）
+[xl_clsAll] xl_clsSheetManager.cls - クラス - Sub UnprotectSheet : 対象シートが保護されている場合に、指定パスワードで保護を解除するにゃ
+[xl_clsAll] xl_clsSheetManager.cls - クラス - Sub ProtectSheet : 指定された設定でシートを保護するにゃ（パスワード付き保護も可）
+[xl_clsAll] xl_clsWorkbookManager.cls - クラス - Sub Init : Excel.Application を起動してオブジェクトを保持するにゃ
+[xl_clsAll] xl_clsWorkbookManager.cls - クラス - Function OpenWorkbook : 指定パスのExcelファイルを開いて返すにゃ
+[xl_clsAll] xl_clsWorkbookManager.cls - クラス - Function GetSheet : 指定された名前 or インデックスのシートを取得するにゃ
+[xl_clsAll] xl_clsWorkbookManager.cls - クラス - Sub SaveWorkbook : 開いているブックをそのまま保存するにゃ
+[xl_clsAll] xl_clsWorkbookManager.cls - クラス - Sub SaveWorkbookAs : 開いているブックを別名で保存するにゃ
+[xl_clsAll] xl_clsWorkbookManager.cls - クラス - Sub CloseWorkbook : 開いているブックを閉じて、Workbook 変数を解放するにゃ
+[xl_clsAll] xl_clsWorkbookManager.cls - クラス - Sub QuitExcel : Excelアプリケーションを終了し、オブジェクトも解放するにゃ
+[com_modAll] com_mod_ArrayUtilities.bas - 標準モジュール - Sub InsertItem : 動的配列に要素を挿入
+[com_modAll] com_mod_ArrayUtilities.bas - 標準モジュール - Sub RemoveItem : 動的配列から要素を削除
+[com_modAll] com_mod_ArrayUtilities.bas - 標準モジュール - Function TransposeArray : 一次元⇔二次元配列の変換
+[com_modAll] com_mod_DateUtilities.bas - 標準モジュール - Function AddDays : 指定日付に日数を加算
+[com_modAll] com_mod_DateUtilities.bas - 標準モジュール - Function AddMonths : 指定日付に月数を加算
+[com_modAll] com_mod_DateUtilities.bas - 標準モジュール - Function BusinessDaysBetween : 2つの日付間の営業日数を計算
+[com_modAll] com_mod_JSONUtilities.bas - 標準モジュール - Function ToJSON : Variant を JSON 文字列に変換
+[com_modAll] com_mod_JSONUtilities.bas - 標準モジュール - Function FromJSON : JSON 文字列を Variant に変換
+[com_modAll] com_mod_StringUtilities.bas - 標準モジュール - Function RegExpReplace : 正規表現で文字列を置換
+[com_modAll] com_mod_StringUtilities.bas - 標準モジュール - Function TrimMultiByte : マルチバイト文字対応の前後トリム
+[com_modAll] com_mod_StringUtilities.bas - 標準モジュール - Function PadString : 指定長に左または右パディング
+[com_modAll] com_mod_XMLUtilities.bas - 標準モジュール - Function GetDOMDoc : シンプル XML 生成／解析ユーティリティ
+[com_modAll] com_mod_XMLUtilities.bas - 標準モジュール - Function CreateElement : 指定タグの XML を生成
+[com_modAll] com_mod_XMLUtilities.bas - 標準モジュール - Function GetAttribute : 指定タグから属性値を取得
+[acc_modAll] acc_mod_DataImportExport.bas - 標準モジュール - Sub ImportCSVToTable : CSV ファイルをテーブルに取り込む
+[acc_modAll] acc_mod_DataImportExport.bas - 標準モジュール - Sub ExportTableToCSV : テーブルを CSV ファイルに書き出す
+[acc_modAll] acc_mod_QueryUtilities.bas - 標準モジュール - Sub ModifyQuerySQL : 既存クエリの SQL を動的に変更
+[acc_modAll] acc_mod_QueryUtilities.bas - 標準モジュール - Sub RunTempQuery : 一時クエリを作成して実行
+[acc_modAll] acc_mod_RecordNavigation.bas - 標準モジュール - Sub MoveNext : Recordset を次へ移動
+[acc_modAll] acc_mod_RecordNavigation.bas - 標準モジュール - Sub MovePrevious : Recordset を前へ移動
+[acc_modAll] acc_mod_RecordNavigation.bas - 標準モジュール - Function FindByKey : 主キーでレコードを検索
+[acc_modAll] acc_mod_ReportUtilities.bas - 標準モジュール - Sub OpenReport : レポートを指定ビューで開く
+[acc_modAll] acc_mod_ReportUtilities.bas - 標準モジュール - Sub ExportReportToPDF : レポートを PDF で出力
+[xl_modAll] xl_mod_ChartUtilities.bas - 標準モジュール - Sub CreateChart : 新規グラフを作成
+[xl_modAll] xl_mod_ChartUtilities.bas - 標準モジュール - Sub UpdateChartSeries : 既存グラフの系列データを更新
+[xl_modAll] xl_mod_ConditionalFormattingUtilities.bas - 標準モジュール - Sub AddColorScaleCF : 3色スケールの条件付き書式を追加
+[xl_modAll] xl_mod_ConditionalFormattingUtilities.bas - 標準モジュール - Sub ClearCF : 条件付き書式をクリア
+[xl_modAll] xl_mod_ConditionalFormattingUtilities.bas - 標準モジュール - Function ListCF : 条件付き書式の種類を一覧で取得
+[xl_modAll] xl_mod_PivotUtilities.bas - 標準モジュール - Sub CreatePivotTable : ピボットテーブルを作成
+[xl_modAll] xl_mod_PivotUtilities.bas - 標準モジュール - Sub RefreshPivotTable : ピボットテーブルを更新
+[xl_modAll] xl_mod_RangeUtilities.bas - 標準モジュール - Sub FindAndReplace : 範囲内で検索と置換
+[xl_modAll] xl_mod_RangeUtilities.bas - 標準モジュール - Sub ClearRange : 範囲をクリア
+[xl_modAll] xl_mod_RangeUtilities.bas - 標準モジュール - Sub AutoFitColumns : 列幅を自動調整
+[xl_modAll] xl_mod_WorksheetUtilities.bas - 標準モジュール - Sub AddSheet : 新しいワークシートを追加し名前を設定
+[xl_modAll] xl_mod_WorksheetUtilities.bas - 標準モジュール - Sub DeleteSheet : ワークシートを削除
+[xl_modAll] xl_mod_WorksheetUtilities.bas - 標準モジュール - Sub RenameSheet : ワークシート名を変更

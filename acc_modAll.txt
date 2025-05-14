@@ -1,0 +1,128 @@
+'=== [ExportDate] 2025-05-14 ===
+'=== [File] acc_mod_DataImportExport.bas ===
+'-------------------------------------
+' Module: acc_mod_DataImportExport
+' 説明  : テーブル⇔外部ファイル間の入出力
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Compare Database
+Option Explicit
+
+'=================================================
+' サブルーチン名 : ImportCSVToTable
+' 説明   : CSV ファイルをテーブルに取り込む
+'=================================================
+Public Sub ImportCSVToTable(filePath As String, tableName As String)
+    DoCmd.TransferText acImportDelim, , tableName, filePath, True
+End Sub
+
+'=================================================
+' サブルーチン名 : ExportTableToCSV
+' 説明   : テーブルを CSV ファイルに書き出す
+'=================================================
+Public Sub ExportTableToCSV(tableName As String, filePath As String)
+    DoCmd.TransferText acExportDelim, , tableName, filePath, True
+End Sub
+
+
+'=== [File] acc_mod_QueryUtilities.bas ===
+'-------------------------------------
+' Module: acc_mod_QueryUtilities
+' 説明  : クエリ定義操作ユーティリティ
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Compare Database
+Option Explicit
+
+'=================================================
+' サブルーチン名 : ModifyQuerySQL
+' 説明   : 既存クエリの SQL を動的に変更
+'=================================================
+Public Sub ModifyQuerySQL(queryName As String, newSQL As String)
+    Dim qdf As DAO.QueryDef
+    Set qdf = CurrentDb.QueryDefs(queryName)
+    qdf.SQL = newSQL
+    qdf.Close
+End Sub
+
+'=================================================
+' サブルーチン名 : RunTempQuery
+' 説明   : 一時クエリを作成して実行
+'=================================================
+Public Sub RunTempQuery(sqlText As String)
+    Dim tmpName As String
+    tmpName = "tmpQuery"
+    On Error Resume Next
+    CurrentDb.QueryDefs.Delete tmpName
+    On Error GoTo 0
+    CurrentDb.CreateQueryDef tmpName, sqlText
+    DoCmd.OpenQuery tmpName
+    CurrentDb.QueryDefs.Delete tmpName
+End Sub
+
+
+'=== [File] acc_mod_RecordNavigation.bas ===
+'-------------------------------------
+' Module: acc_mod_RecordNavigation
+' 説明  : Recordset 操作用ナビゲーション
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Compare Database
+Option Explicit
+
+'=================================================
+' サブルーチン名 : MoveNext
+' 説明   : Recordset を次へ移動
+'=================================================
+Public Sub MoveNext(rs As DAO.Recordset)
+    If Not rs.EOF Then rs.MoveNext
+End Sub
+
+'=================================================
+' サブルーチン名 : MovePrevious
+' 説明   : Recordset を前へ移動
+'=================================================
+Public Sub MovePrevious(rs As DAO.Recordset)
+    If Not rs.BOF Then rs.MovePrevious
+End Sub
+
+'=================================================
+' 関数名 : FindByKey
+' 説明   : 主キーでレコードを検索
+'=================================================
+Public Function FindByKey(rs As DAO.Recordset, keyField As String, keyValue As Variant) As Boolean
+    rs.FindFirst keyField & " = " & IIf(IsNumeric(keyValue), keyValue, "'" & keyValue & "'")
+    FindByKey = Not rs.NoMatch
+End Function
+
+
+'=== [File] acc_mod_ReportUtilities.bas ===
+'-------------------------------------
+' Module: acc_mod_ReportUtilities
+' 説明  : レポート自動操作ユーティリティ
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Compare Database
+Option Explicit
+
+'=================================================
+' サブルーチン名 : OpenReport
+' 説明   : レポートを指定ビューで開く
+'=================================================
+Public Sub OpenReport(reportName As String, view As AcView)
+    DoCmd.OpenReport reportName, view
+End Sub
+
+'=================================================
+' サブルーチン名 : ExportReportToPDF
+' 説明   : レポートを PDF で出力
+'=================================================
+Public Sub ExportReportToPDF(reportName As String, outputPath As String)
+    DoCmd.OutputTo acOutputReport, reportName, acFormatPDF, outputPath
+End Sub
+
+

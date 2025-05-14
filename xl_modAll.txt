@@ -1,0 +1,171 @@
+'=== [ExportDate] 2025-05-14 ===
+'=== [File] xl_mod_ChartUtilities.bas ===
+'-------------------------------------
+' Module: xl_mod_ChartUtilities
+' 説明  : グラフ作成・更新ユーティリティ
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Explicit
+
+'=================================================
+' サブルーチン名 : CreateChart
+' 説明   : 新規グラフを作成
+'=================================================
+Public Sub CreateChart(ws As Worksheet, chartType As XlChartType, srcRange As Range, left As Double, top As Double, width As Double, height As Double)
+    Dim chtObj As ChartObject
+    Set chtObj = ws.ChartObjects.Add(left, top, width, height)
+    chtObj.Chart.SetSourceData Source:=srcRange
+    chtObj.Chart.ChartType = chartType
+End Sub
+
+'=================================================
+' サブルーチン名 : UpdateChartSeries
+' 説明   : 既存グラフの系列データを更新
+'=================================================
+Public Sub UpdateChartSeries(cht As Chart, seriesIndex As Long, newRange As Range)
+    cht.SeriesCollection(seriesIndex).Values = newRange
+End Sub
+
+
+'=== [File] xl_mod_ConditionalFormattingUtilities.bas ===
+'-------------------------------------
+' Module: xl_mod_ConditionalFormattingUtilities
+' 説明  : 条件付き書式設定の汎用関数
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Explicit
+
+'=================================================
+' サブルーチン名 : AddColorScaleCF
+' 説明   : 3色スケールの条件付き書式を追加
+'=================================================
+Public Sub AddColorScaleCF(rng As Range)
+    rng.FormatConditions.AddColorScale ColorScaleType:=3
+End Sub
+
+'=================================================
+' サブルーチン名 : ClearCF
+' 説明   : 条件付き書式をクリア
+'=================================================
+Public Sub ClearCF(rng As Range)
+    rng.FormatConditions.Delete
+End Sub
+
+'=================================================
+' 関数名 : ListCF
+' 説明   : 条件付き書式の種類を一覧で取得
+'=================================================
+Public Function ListCF(rng As Range) As Variant
+    Dim i As Long
+    Dim arr() As String
+    ReDim arr(1 To rng.FormatConditions.Count)
+    For i = 1 To rng.FormatConditions.Count
+        arr(i) = rng.FormatConditions(i).Type
+    Next i
+    ListCF = arr
+End Function
+
+
+'=== [File] xl_mod_PivotUtilities.bas ===
+'-------------------------------------
+' Module: xl_mod_PivotUtilities
+' 説明  : ピボットテーブル操作ユーティリティ
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Explicit
+
+'=================================================
+' サブルーチン名 : CreatePivotTable
+' 説明   : ピボットテーブルを作成
+'=================================================
+Public Sub CreatePivotTable(ws As Worksheet, srcRange As Range, destCell As Range, pivotName As String)
+    Dim pvtCache As PivotCache
+    Set pvtCache = ThisWorkbook.PivotCaches.Create(xlDatabase, srcRange)
+    pvtCache.CreatePivotTable TableDestination:=destCell.Address, TableName:=pivotName
+End Sub
+
+'=================================================
+' サブルーチン名 : RefreshPivotTable
+' 説明   : ピボットテーブルを更新
+'=================================================
+Public Sub RefreshPivotTable(pivotTable As PivotTable)
+    pivotTable.RefreshTable
+End Sub
+
+
+'=== [File] xl_mod_RangeUtilities.bas ===
+'-------------------------------------
+' Module: xl_mod_RangeUtilities
+' 説明  : Range／セル操作の拡張関数
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Explicit
+
+'=================================================
+' サブルーチン名 : FindAndReplace
+' 説明   : 範囲内で検索と置換
+'=================================================
+Public Sub FindAndReplace(rng As Range, findText As String, replaceText As String)
+    rng.Replace what:=findText, Replacement:=replaceText, LookAt:=xlPart
+End Sub
+
+'=================================================
+' サブルーチン名 : ClearRange
+' 説明   : 範囲をクリア
+'=================================================
+Public Sub ClearRange(rng As Range)
+    rng.Clear
+End Sub
+
+'=================================================
+' サブルーチン名 : AutoFitColumns
+' 説明   : 列幅を自動調整
+'=================================================
+Public Sub AutoFitColumns(rng As Range)
+    rng.EntireColumn.AutoFit
+End Sub
+
+
+'=== [File] xl_mod_WorksheetUtilities.bas ===
+'-------------------------------------
+' Module: xl_mod_WorksheetUtilities
+' 説明  : ワークシート操作の汎用ユーティリティ
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Explicit
+
+'=================================================
+' サブルーチン名 : AddSheet
+' 説明   : 新しいワークシートを追加し名前を設定
+'=================================================
+Public Sub AddSheet(wb As Workbook, sheetName As String)
+    wb.Worksheets.Add After:=wb.Sheets(wb.Sheets.Count)
+    wb.ActiveSheet.Name = sheetName
+End Sub
+
+'=================================================
+' サブルーチン名 : DeleteSheet
+' 説明   : ワークシートを削除
+'=================================================
+Public Sub DeleteSheet(wb As Workbook, sheetName As String)
+    Application.DisplayAlerts = False
+    On Error Resume Next
+    wb.Worksheets(sheetName).Delete
+    On Error GoTo 0
+    Application.DisplayAlerts = True
+End Sub
+
+'=================================================
+' サブルーチン名 : RenameSheet
+' 説明   : ワークシート名を変更
+'=================================================
+Public Sub RenameSheet(wb As Workbook, oldName As String, newName As String)
+    wb.Worksheets(oldName).Name = newName
+End Sub
+
+

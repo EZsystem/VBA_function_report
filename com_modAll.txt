@@ -1,0 +1,217 @@
+'=== [ExportDate] 2025-05-14 ===
+'=== [File] com_mod_ArrayUtilities.bas ===
+'-------------------------------------
+' Module: com_mod_ArrayUtilities
+' 説明  : 配列操作の汎用関数
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Compare Database
+Option Explicit
+
+'=================================================
+' サブルーチン名 : InsertItem
+' 説明   : 動的配列に要素を挿入
+'=================================================
+Public Sub InsertItem(arr As Variant, index As Long, item As Variant)
+    Dim upperB As Long
+    upperB = UBound(arr)
+    ReDim Preserve arr(0 To upperB + 1)
+    Dim i As Long
+    For i = upperB To index Step -1
+        arr(i + 1) = arr(i)
+    Next i
+    arr(index) = item
+End Sub
+
+'=================================================
+' サブルーチン名 : RemoveItem
+' 説明   : 動的配列から要素を削除
+'=================================================
+Public Sub RemoveItem(arr As Variant, index As Long)
+    Dim i As Long
+    For i = index To UBound(arr) - 1
+        arr(i) = arr(i + 1)
+    Next i
+    ReDim Preserve arr(0 To UBound(arr) - 1)
+End Sub
+
+'=================================================
+' 関数名 : TransposeArray
+' 説明   : 一次元⇔二次元配列の変換
+'=================================================
+Public Function TransposeArray(arr As Variant) As Variant
+    TransposeArray = Application.WorksheetFunction.Transpose(arr)
+End Function
+
+
+'=== [File] com_mod_DateUtilities.bas ===
+'-------------------------------------
+' Module: com_mod_DateUtilities
+' 説明  : 日付・時刻操作の汎用関数を提供
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Compare Database
+Option Explicit
+
+'=================================================
+' 関数名 : AddDays
+' 説明   : 指定日付に日数を加算
+' 引数   : baseDate As Date, days As Long
+' 戻り値 : Date
+'=================================================
+Public Function AddDays(baseDate As Date, days As Long) As Date
+    AddDays = DateAdd("d", days, baseDate)
+End Function
+
+'=================================================
+' 関数名 : AddMonths
+' 説明   : 指定日付に月数を加算
+'=================================================
+Public Function AddMonths(baseDate As Date, months As Long) As Date
+    AddMonths = DateAdd("m", months, baseDate)
+End Function
+
+'=================================================
+' 関数名 : BusinessDaysBetween
+' 説明   : 2つの日付間の営業日数を計算
+'=================================================
+Public Function BusinessDaysBetween(startDate As Date, endDate As Date) As Long
+    Dim count As Long
+    Dim d As Date
+    count = 0
+    For d = startDate To endDate
+        If Weekday(d, vbMonday) <= 5 Then count = count + 1
+    Next d
+    BusinessDaysBetween = count
+End Function
+
+
+'=== [File] com_mod_JSONUtilities.bas ===
+'-------------------------------------
+' Module: com_mod_JSONUtilities
+' 説明  : JSON シリアライズ／デシリアライズ
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Compare Database
+Option Explicit
+
+' 実装には VBA-JSON (GitHub) の JsonConverter.bas を推奨
+
+'=================================================
+' 関数名 : ToJSON
+' 説明   : Variant を JSON 文字列に変換
+'=================================================
+Public Function ToJSON(value As Variant) As String
+    ToJSON = JsonConverter.ConvertToJson(value)
+End Function
+
+'=================================================
+' 関数名 : FromJSON
+' 説明   : JSON 文字列を Variant に変換
+'=================================================
+Public Function FromJSON(jsonText As String) As Variant
+    Set FromJSON = JsonConverter.ParseJson(jsonText)
+End Function
+
+
+'=== [File] com_mod_StringUtilities.bas ===
+'-------------------------------------
+' Module: com_mod_StringUtilities
+' 説明  : 文字列操作の拡張ユーティリティ
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Compare Database
+Option Explicit
+
+'=================================================
+' 関数名 : RegExpReplace
+' 説明   : 正規表現で文字列を置換
+' 引数   : pattern As String, replacement As String, inputText As String
+' 戻り値 : String
+'=================================================
+Public Function RegExpReplace(pattern As String, replacement As String, inputText As String) As String
+    Dim reg As Object
+    Set reg = CreateObject("VBScript.RegExp")
+    With reg
+        .Global = True
+        .Pattern = pattern
+    End With
+    RegExpReplace = reg.Replace(inputText, replacement)
+End Function
+
+'=================================================
+' 関数名 : TrimMultiByte
+' 説明   : マルチバイト文字対応の前後トリム
+'=================================================
+Public Function TrimMultiByte(text As String) As String
+    TrimMultiByte = LTrim(RTrim(text))
+End Function
+
+'=================================================
+' 関数名 : PadString
+' 説明   : 指定長に左または右パディング
+' 引数   : text As String, totalWidth As Long, padChar As String, padLeft As Boolean
+'=================================================
+Public Function PadString(text As String, totalWidth As Long, padChar As String, padLeft As Boolean) As String
+    Dim padding As String
+    padding = String(totalWidth - Len(text), padChar)
+    If padLeft Then
+        PadString = padding & text
+    Else
+        PadString = text & padding
+    End If
+End Function
+
+
+'=== [File] com_mod_XMLUtilities.bas ===
+'-------------------------------------
+' Module: com_mod_XMLUtilities
+' 説明  : シンプル XML 生成／解析ユーティリティ
+' 作成日: 2025/05/04
+' 更新日: -
+'-------------------------------------
+Option Compare Database
+Option Explicit
+
+Private Function GetDOMDoc() As Object
+    Dim xml As Object
+    Set xml = CreateObject("MSXML2.DOMDocument.6.0")
+    xml.async = False
+    xml.validateOnParse = False
+    Set GetDOMDoc = xml
+End Function
+
+'=================================================
+' 関数名 : CreateElement
+' 説明   : 指定タグの XML を生成
+'=================================================
+Public Function CreateElement(tagName As String, textContent As String) As String
+    Dim xml As Object
+    Set xml = GetDOMDoc()
+    Dim root As Object
+    Set root = xml.createElement(tagName)
+    root.text = textContent
+    xml.appendChild root
+    CreateElement = xml.xml
+End Function
+
+'=================================================
+' 関数名 : GetAttribute
+' 説明   : 指定タグから属性値を取得
+'=================================================
+Public Function GetAttribute(xmlText As String, tagName As String, attrName As String) As String
+    Dim xml As Object
+    Set xml = GetDOMDoc()
+    xml.LoadXML xmlText
+    Dim node As Object
+    Set node = xml.SelectSingleNode("//" & tagName)
+    If Not node Is Nothing Then
+        GetAttribute = node.Attributes.getNamedItem(attrName).Text
+    End If
+End Function
+
+

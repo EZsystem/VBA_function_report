@@ -1,0 +1,1194 @@
+'=== [ExportDate] 2025-05-14 ===
+'=== [File] acc_clsDataCleaner.cls ===
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "acc_clsDataCleaner"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'=====================================
+' Class Module: acc_clsDataCleaner
+' 説明　：データ型変換とクレンジングを一括で提供する汎用クラスにゃ！
+' 作成日：2025/04/26
+' 作成者：そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+'=====================================
+' 関数名 : CleanText
+' 説明　 : NULL補完＋Trimして安全な文字列を返すにゃ
+'=====================================
+Public Function CleanText(val As Variant) As String
+    If IsNull(val) Then
+        CleanText = ""
+    Else
+        CleanText = Trim(CStr(val))
+    End If
+End Function
+
+'=====================================
+' 関数名 : CleanNumber
+' 説明　 : NULL補完＋数値型に安全変換するにゃ
+'=====================================
+Public Function CleanNumber(val As Variant, Optional defaultValue As Double = 0) As Double
+    If IsNull(val) Or Not IsNumeric(val) Then
+        CleanNumber = defaultValue
+    Else
+        CleanNumber = CDbl(val)
+    End If
+End Function
+
+'=====================================
+' 関数名 : CleanDate
+' 説明　 : NULL補完＋日付型に安全変換するにゃ
+'=====================================
+Public Function CleanDate(val As Variant, Optional defaultDate As Date = #1/1/1900#) As Date
+    If IsNull(val) Or Not IsDate(val) Then
+        CleanDate = defaultDate
+    Else
+        CleanDate = CDate(val)
+    End If
+End Function
+
+'=====================================
+' 関数名 : TextToInteger
+' 説明　 : テキスト型をInteger型に安全変換するにゃ
+'=====================================
+Public Function TextToInteger(val As Variant, Optional defaultValue As Integer = 0) As Integer
+    If IsNull(val) Or Trim(val) = "" Then
+        TextToInteger = defaultValue
+    ElseIf IsNumeric(val) Then
+        TextToInteger = CInt(val)
+    Else
+        TextToInteger = defaultValue
+    End If
+End Function
+
+'=====================================
+' 関数名 : TextToLong
+' 説明　 : テキスト型をLong型に安全変換するにゃ
+'=====================================
+Public Function TextToLong(val As Variant, Optional defaultValue As Long = 0) As Long
+    If IsNull(val) Or Trim(val) = "" Then
+        TextToLong = defaultValue
+    ElseIf IsNumeric(val) Then
+        TextToLong = CLng(val)
+    Else
+        TextToLong = defaultValue
+    End If
+End Function
+
+'=====================================
+' 関数名 : TextToSingle
+' 説明　 : テキスト型をSingle型に安全変換するにゃ
+'=====================================
+Public Function TextToSingle(val As Variant, Optional defaultValue As Single = 0) As Single
+    If IsNull(val) Or Trim(val) = "" Then
+        TextToSingle = defaultValue
+    ElseIf IsNumeric(val) Then
+        TextToSingle = CSng(val)
+    Else
+        TextToSingle = defaultValue
+    End If
+End Function
+
+'=====================================
+' 関数名 : TextToDouble
+' 説明　 : テキスト型をDouble型に安全変換するにゃ
+'=====================================
+Public Function TextToDouble(val As Variant, Optional defaultValue As Double = 0) As Double
+    If IsNull(val) Or Trim(val) = "" Then
+        TextToDouble = defaultValue
+    ElseIf IsNumeric(val) Then
+        TextToDouble = CDbl(val)
+    Else
+        TextToDouble = defaultValue
+    End If
+End Function
+
+'=====================================
+' 関数名 : TextToCurrency
+' 説明　 : テキスト型をCurrency型に安全変換するにゃ
+'=====================================
+Public Function TextToCurrency(val As Variant, Optional defaultValue As Currency = 0) As Currency
+    If IsNull(val) Or Trim(val) = "" Then
+        TextToCurrency = defaultValue
+    ElseIf IsNumeric(val) Then
+        TextToCurrency = CCur(val)
+    Else
+        TextToCurrency = defaultValue
+    End If
+End Function
+
+'=====================================
+' 関数名 : TextToDate
+' 説明　 : テキスト型を日付型に安全変換するにゃ
+'=====================================
+Public Function TextToDate(val As Variant, Optional defaultDate As Date = #1/1/1900#) As Date
+    If IsNull(val) Or Trim(val) = "" Then
+        TextToDate = defaultDate
+    ElseIf IsDate(val) Then
+        TextToDate = CDate(val)
+    Else
+        TextToDate = defaultDate
+    End If
+End Function
+
+'=====================================
+' 関数名 : TextToBoolean
+' 説明　 : テキスト型をブール型に変換するにゃ
+'=====================================
+Public Function TextToBoolean(val As Variant, Optional defaultValue As Boolean = False) As Boolean
+    Dim txt As String
+    If IsNull(val) Then
+        TextToBoolean = defaultValue
+        Exit Function
+    End If
+    txt = LCase(Trim(CStr(val)))
+    Select Case txt
+        Case "true", "yes", "1"
+            TextToBoolean = True
+        Case "false", "no", "0"
+            TextToBoolean = False
+        Case Else
+            TextToBoolean = defaultValue
+    End Select
+End Function
+
+'=====================================
+' 関数名 : IsNumericStrict
+' 説明　 : 厳密な数値判定をするにゃ
+'=====================================
+Public Function IsNumericStrict(val As Variant) As Boolean
+    IsNumericStrict = False
+    If Not IsNull(val) Then
+        If IsNumeric(val) Then IsNumericStrict = True
+    End If
+End Function
+
+'=====================================
+' 関数名 : IsDateStrict
+' 説明　 : 厳密な日付判定をするにゃ
+'=====================================
+Public Function IsDateStrict(val As Variant) As Boolean
+    IsDateStrict = False
+    If Not IsNull(val) Then
+        If IsDate(val) Then IsDateStrict = True
+    End If
+End Function
+
+'=================================================
+' 関数名 : GetSupportedVBAType
+' 説明   : 日本語のAccess型名をVBA型名に変換する
+'         対応していない型名の場合はエラーを返す
+' 引数   : jpType（String） 日本語型名（例："長整数型"）
+' 戻り値 : String（"Long", "Date" など）
+'=================================================
+Public Function GetSupportedVBAType(ByVal jptype As String) As String
+    Dim typeName As String
+    typeName = Trim(jptype)
+
+    Select Case typeName
+        Case "テキスト型"
+            GetSupportedVBAType = "String"
+
+        Case "長整数型"
+            GetSupportedVBAType = "Long"
+
+        Case "整数型"
+            GetSupportedVBAType = "Integer"
+
+        Case "単精度浮動小数点型"
+            GetSupportedVBAType = "Single"
+
+        Case "倍精度浮動小数点型"
+            GetSupportedVBAType = "Double"
+
+        Case "通貨型"
+            GetSupportedVBAType = "Currency"
+
+        Case "日付/時刻型"
+            GetSupportedVBAType = "Date"
+
+        Case "Yes/No型"
+            GetSupportedVBAType = "Boolean"
+
+        Case Else
+            Debug.Print "【GetSupportedVBAType エラー】未対応の型：" & jptype
+            MsgBox "未対応の型です：" & jptype, vbExclamation, "型変換エラー"
+            Err.Raise vbObjectError + 500, "GetSupportedVBAType", "未対応の型：" & jptype
+    End Select
+End Function
+
+'=====================================
+' 関数名 : TextToString
+' 説明　 : テキスト型に安全に変換するにゃ（Null→""）
+'=====================================
+Public Function TextToString(val As Variant, Optional defaultValue As String = "") As String
+    If IsNull(val) Then
+        TextToString = defaultValue
+    Else
+        TextToString = CStr(val)
+    End If
+End Function
+
+
+
+
+'=== [File] acc_clsDbConnector.cls ===
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "acc_clsDbConnector"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'=====================================
+' Class Module: acc_clsDbConnector
+' 説明　：DAO.Database取得およびSQL実行ラッパーを提供するクラス
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private pDB As DAO.Database
+
+'=================================================
+' サブルーチン名 : Init
+' 機能 : DAO.Database オブジェクト（CurrentDb）を初期化して保持するにゃ
+'=================================================
+Public Sub Init()
+    Set pDB = CurrentDb
+End Sub
+
+'=================================================
+' プロパティ名 : DB
+' 機能 : 内部に保持した DAO.Database オブジェクトを取得するにゃ
+'=================================================
+Public Property Get DB() As DAO.Database
+    Set DB = pDB
+End Property
+
+'=================================================
+' サブルーチン名 : ExecuteSQL
+' 引数 : sql - 実行するSQL文
+'        failOnError - Trueならエラー時に例外を出す（既定値：True）
+' 機能 : SQL文を現在のDB接続で実行するにゃ。エラーハンドリングも対応にゃ
+'=================================================
+Public Sub ExecuteSQL(sql As String, Optional failOnError As Boolean = True)
+    pDB.Execute sql, IIf(failOnError, dbFailOnError, dbSeeChanges)
+End Sub
+
+
+
+'=== [File] acc_clsExcelImporter.cls ===
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "acc_clsExcelImporter"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'=====================================
+' Class Module: acc_clsExcelImporter
+' 説明　：Excel配列からテンポラリテーブルへの取込＆メインテーブルへコミットを提供するクラス（汎用版）
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private pDB               As DAO.Database
+Private pDictMapping      As Object
+Private pDictValidFields  As Object
+Private pColMapping       As Object
+Private pSkipConditions   As Object
+Private pDefaultValues    As Object
+Private pImportTableName As String
+Private pImportSourceFieldName As String
+Private pImportTargetFieldName As String
+
+
+' --- 公開プロパティ ---
+Public tableName       As String
+Public TempTableName   As String
+Public TitleRow As Long             ' タイトル行（例：5）
+Public DataStartRow As Long        ' データ開始行（例：6）
+Public StartColumn As Long         ' データ開始列（例：2 = B列）
+Public ImportColumnMax As Long      ' 最大列数（設定しない場合は自動判定）
+
+'=================================================
+' サブルーチン名 : Init
+' 機能 : データベース接続（CurrentDb）および各種辞書オブジェクトを初期化するにゃ
+'        項目マッピング、有効フィールド、列マッピング、
+'        スキップ条件、初期値設定の各辞書を作成するにゃ
+'=================================================
+Public Sub Init()
+    Set pDB = CurrentDb
+    Set pDictMapping = CreateObject("Scripting.Dictionary")
+    Set pDictValidFields = CreateObject("Scripting.Dictionary")
+    Set pColMapping = CreateObject("Scripting.Dictionary")
+    
+    Set pSkipConditions = CreateObject("Scripting.Dictionary")
+    Set pDefaultValues = CreateObject("Scripting.Dictionary")
+End Sub
+
+
+'=================================================
+' プロパティ名 : SkipConditions
+' 引数 : val - スキップ条件の辞書（Dictionary）
+' 機能 : スキップ条件の辞書オブジェクトを設定・取得するにゃ
+'=================================================
+Public Property Set SkipConditions(val As Object)
+    Set pSkipConditions = val
+End Property
+
+Public Property Get SkipConditions() As Object
+    Set SkipConditions = pSkipConditions
+End Property
+
+
+
+'=================================================
+' プロパティ名 : DefaultValues
+' 引数 : val - 初期値の辞書（Dictionary）
+' 機能 : 各フィールドの初期値設定を保持する辞書オブジェクトを設定・取得するにゃ
+'=================================================
+Public Property Set DefaultValues(val As Object)
+    Set pDefaultValues = val
+End Property
+
+Public Property Get DefaultValues() As Object
+    Set DefaultValues = pDefaultValues
+End Property
+
+
+'=================================================
+' プロパティ名 : MappingMode
+' 引数 : val - マッピングモード（"タイトル一致", "取込情報テーブル"）
+' 機能 : 取込時の項目マッピング方法を選択して、対応する処理を呼び出すにゃ
+'=================================================
+Public Property Let MappingMode(val As String)
+    Select Case val
+        Case "タイトル一致": Call PrepareMappings_ByTitleMatch_Flexible
+        Case "取込情報テーブル": Call PrepareMappings_ByImportTable
+        Case Else: MsgBox "未対応のMappingMode：" & val, vbCritical
+    End Select
+End Property
+
+
+'=================================================
+' プロパティ名 : fieldNames
+' 引数 : val - タイトル行の配列
+' 機能 : 配列の見出し情報から項目位置を特定して、列マッピングを生成するにゃ
+'=================================================
+Public Property Let fieldNames(val As Variant)
+    PrepareFieldNames val
+End Property
+
+
+'=================================================
+' プロパティ名 : ImportTableName
+' 引数 : val - 取込設定テーブルのテーブル名
+' 機能 : フィールドマッピング用に参照するテーブル名を保持するにゃ
+'=================================================
+Public Property Let ImportTableName(val As String)
+    pImportTableName = val
+End Property
+
+
+'=================================================
+' プロパティ名 : ImportSourceFieldName
+' 引数 : val - マッピング元のフィールド名
+' 機能 : 取込設定テーブル内の、マッピング元の列名を指定するにゃ
+'=================================================
+Public Property Let ImportSourceFieldName(val As String)
+    pImportSourceFieldName = val
+End Property
+
+
+'=================================================
+' プロパティ名 : ImportTargetFieldName
+' 引数 : val - マッピング先のフィールド名
+' 機能 : 取込設定テーブル内の、マッピング先の列名を指定するにゃ
+'=================================================
+Public Property Let ImportTargetFieldName(val As String)
+    pImportTargetFieldName = val
+End Property
+
+
+'=================================================
+' サブルーチン名 : PrepareFieldNames
+' 引数 : val - タイトル行の配列（1行N列）
+' 機能 : 見出しの非空列を抽出し、列位置とマッピングを登録するにゃ
+'=================================================
+Private Sub PrepareFieldNames(val As Variant)
+    Dim i     As Long
+    Dim title As String
+    
+    For i = 1 To ImportColumnMax
+        title = Trim(Nz(val(1, i), ""))
+        
+        If title <> "" Then
+            pColMapping.Add title, i
+        End If
+    Next i
+End Sub
+
+
+'=================================================
+' サブルーチン名 : PrepareMappings_ByTitleMatch_Flexible
+' 機能 : タイトルと同じ値でマッピングを構成するにゃ
+'        （取込対象の列名とテーブルの列名が同一の場合を想定）
+'=================================================
+Private Sub PrepareMappings_ByTitleMatch_Flexible()
+    Dim fld As Variant
+    For Each fld In pColMapping.Items
+        pDictMapping(fld) = fld
+    Next fld
+End Sub
+
+
+'=================================================
+' サブルーチン名 : PrepareMappings_ByImportTable
+' 機能 : 指定された取込設定テーブルからマッピング定義を読み取り、項目名の対応関係を構成するにゃ
+'=================================================
+Private Sub PrepareMappings_ByImportTable()
+    Dim rs As DAO.Recordset
+    Set rs = pDB.OpenRecordset(pImportTableName, dbOpenSnapshot)
+    Do Until rs.EOF
+        pDictMapping(rs.Fields(pImportSourceFieldName).value) = rs.Fields(pImportTargetFieldName).value
+        rs.MoveNext
+    Loop
+    rs.Close
+End Sub
+
+
+'=================================================
+' サブルーチン名 : ImportFromArray
+' 引数 : dataArr - 取込対象の2次元配列（タイトルなし）
+' 機能 : 配列データを行ごとに処理し、スキップ条件と初期値補完を考慮しながら仮テーブルへ登録するにゃ
+'=================================================
+Public Sub ImportFromArray(dataArr As Variant)
+    Dim rs      As DAO.Recordset
+    Set rs = pDB.OpenRecordset(TempTableName, dbOpenDynaset)
+    Dim r       As Long
+    Dim c       As Variant
+    Dim fld     As String
+    Dim valCell As Variant
+
+    For r = 1 To UBound(dataArr, 1)
+        If Not ShouldSkip(dataArr, r) Then
+            rs.AddNew
+            For Each c In pColMapping.Keys
+                fld = pColMapping(c)
+                valCell = dataArr(r, c)
+                If (IsNull(valCell) Or Trim(CStr(valCell)) = "") Then
+                    If Not pDefaultValues Is Nothing Then
+                        If pDefaultValues.Exists(fld) Then _
+                            valCell = pDefaultValues(fld)
+                    End If
+                End If
+                rs.Fields(pDictMapping(fld)).value = valCell
+            Next c
+            rs.Update
+        End If
+    Next r
+    rs.Close
+End Sub
+
+
+'=================================================
+' 関数名 : ShouldSkip
+' 引数 : dataArr - 読み込んだデータ配列
+'        rowIndex - 対象の行番号
+' 機能 : 取込対象データがスキップ条件に一致するかを判定するにゃ
+'=================================================
+Private Function ShouldSkip(dataArr As Variant, rowIndex As Long) As Boolean
+    Dim fn As Variant
+    Dim cell As String
+    Dim patterns As Variant
+    Dim pat As Variant
+
+    ' スキップ条件未設定ならスキップしない
+    If pSkipConditions Is Nothing Then Exit Function
+
+    For Each fn In pSkipConditions.Keys
+        ' ★ 置換後タイトルでマッピングが存在するかチェック！
+        If pColMapping.Exists(fn) Then
+            Set patterns = pSkipConditions(fn)
+
+            ' ★ 配列の該当セルを安全に取得
+            cell = Trim(Nz(dataArr(rowIndex, pColMapping(fn)), ""))
+
+            ' ★ 各パターンと一致するかチェック
+            For Each pat In patterns
+                If cell Like pat Then
+                    ShouldSkip = True
+                    Exit Function
+                End If
+            Next pat
+        Else
+            ' ★ もしマッピングに存在しなければデバッグ出力だけ（処理は続行）
+            Debug.Print "【警告】pColMappingに存在しない列名にゃ: " & fn
+        End If
+    Next fn
+End Function
+
+'=================================================
+' サブルーチン名 : CommitToMain
+' 機能 : 仮テーブル（TempTableName）の内容を本テーブル（tableName）へ一括で登録するにゃ
+'        INSERT INTO ～ SELECT 文を使って、全件コピーする処理にゃ
+'=================================================
+Public Sub CommitToMain()
+    pDB.Execute "INSERT INTO [" & tableName & "] SELECT * FROM [" & TempTableName & "]", dbFailOnError
+End Sub
+
+
+'=================================================
+' サブルーチン名 : ImportFromWorksheet
+' 引数：ws - 取込対象のワークシート（Excel.Worksheet）
+' 機能：指定行列からタイトルとデータを取得し、ImportFromArray に渡す
+'=================================================
+Public Sub ImportFromWorksheet(ws As Object)
+    Dim lastRow As Long
+    Dim lastCol As Long
+    Dim titleArr As Variant
+    Dim dataArr As Variant
+
+    ' --- タイトル読み込み ---
+
+    ' ImportColumnMaxが0なら、タイトル行から列数を自動判定するにゃ！
+    If ImportColumnMax = 0 Then
+        lastCol = ws.Cells(TitleRow, ws.Columns.Count).End(-4159).Column ' xlToLeft
+        ImportColumnMax = lastCol - StartColumn + 1
+    End If
+
+    Set pColMapping = CreateObject("Scripting.Dictionary")
+    titleArr = ws.Range(ws.Cells(TitleRow, StartColumn), ws.Cells(TitleRow, StartColumn + ImportColumnMax - 1)).value
+    fieldNames = titleArr
+
+    ' --- データ最終行取得 ---
+    lastRow = ws.Cells(ws.Rows.Count, StartColumn).End(-4162).row
+
+    ' --- データ読み込み ---
+    dataArr = ws.Range(ws.Cells(DataStartRow, StartColumn), ws.Cells(lastRow, StartColumn + ImportColumnMax - 1)).value
+
+    ' --- 配列から取込実行 ---
+    ImportFromArray dataArr
+End Sub
+
+
+
+
+
+
+
+'=== [File] acc_clsFieldReplacer.cls ===
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "acc_clsFieldReplacer"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'=====================================
+' Class Module: acc_clsFieldReplacer
+' 説明　：マスタ定義に基づき、フィールド値またはタイトル行を置換する汎用クラス
+' 作成日：2025/04/30
+' 更新日：-
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private pDB As DAO.Database
+Private pTableName As String
+Private pTargetFields As Variant
+Private pDictMapping As Object
+
+'=================================================
+' 関数名 : Init
+' 説明   : DAOデータベースの初期化
+' 引数   : なし
+'=================================================
+Public Sub Init()
+    Set pDB = CurrentDb
+    Set pDictMapping = CreateObject("Scripting.Dictionary")
+End Sub
+
+'=================================================
+' 関数名 : SetTargetTable
+' 説明   : 対象となるテーブル名を設定する
+' 引数   : tableName（String）
+'=================================================
+Public Sub SetTargetTable(tableName As String)
+    pTableName = tableName
+End Sub
+
+'=================================================
+' 関数名 : SetTargetFields
+' 説明   : 処理対象のフィールド名を限定的に指定する
+' 引数   : fieldNames（Variant：配列）
+'=================================================
+Public Sub SetTargetFields(fieldNames As Variant)
+    pTargetFields = fieldNames
+End Sub
+
+'=================================================
+' 関数名 : LoadMapping
+' 説明   : マスタテーブルから置換マッピングを読み込む
+' 引数   : mappingTable（String）
+'        : keyField（String）
+'        : valueField（String）
+'=================================================
+Public Sub LoadMapping(mappingTable As String, keyField As String, valueField As String)
+    Dim rs As DAO.Recordset
+    Set rs = pDB.OpenRecordset(mappingTable, dbOpenSnapshot)
+
+    Dim k As String
+    Do Until rs.EOF
+        k = Nz(rs.Fields(keyField).value, "")
+        If Len(k) > 0 Then
+            If pDictMapping.Exists(k) Then
+                Debug.Print "【重複キー検出】：" & k & " → " & pDictMapping(k)
+                Err.Raise vbObjectError + 1001, , "マスタに重複キーがあります：" & k
+            End If
+            pDictMapping.Add k, Nz(rs.Fields(valueField).value, "")
+        End If
+        rs.MoveNext
+    Loop
+    rs.Close
+End Sub
+
+'=================================================
+' 関数名 : ReplaceFieldNames
+' 説明   : フィールド名（F1など）をキーに、1レコードの値を置換する
+' 引数   : なし
+'=================================================
+Public Sub ReplaceFieldNames()
+    Dim rs As DAO.Recordset
+    Set rs = pDB.OpenRecordset(pTableName, dbOpenDynaset)
+
+    If rs.EOF Then Exit Sub
+    rs.MoveFirst
+    rs.Edit
+
+    Dim fld As DAO.Field
+    For Each fld In rs.Fields
+        If pDictMapping.Exists(fld.Name) Then
+            rs.Fields(fld.Name).value = pDictMapping(fld.Name)
+        End If
+    Next fld
+
+    rs.Update
+    rs.Close
+End Sub
+
+'=================================================
+' 関数名 : ReplaceFieldValues
+' 説明   : 各レコードの中身を置換マスタに基づいて更新する
+' 引数   : Optional whereCondition（String）← レコードの絞り込み条件
+'=================================================
+Public Sub ReplaceFieldValues(Optional whereCondition As String = "")
+    Dim sql As String
+    sql = "SELECT * FROM [" & pTableName & "]"
+    If Len(whereCondition) > 0 Then
+        sql = sql & " WHERE " & whereCondition
+    End If
+
+    Dim rs As DAO.Recordset
+    Set rs = pDB.OpenRecordset(sql, dbOpenDynaset)
+
+    If rs.EOF Then Exit Sub
+
+    Do Until rs.EOF
+        rs.Edit
+        Dim fld As DAO.Field
+        For Each fld In rs.Fields
+            If Not IsMissing(pTargetFields) Then
+                If IsInArray(fld.Name, pTargetFields) Then
+                    ReplaceIfMatch rs, fld
+                End If
+            Else
+                ReplaceIfMatch rs, fld
+            End If
+        Next fld
+        rs.Update
+        rs.MoveNext
+    Loop
+
+    rs.Close
+End Sub
+
+'=================================================
+' 関数名 : ReplaceIfMatch
+' 説明   : 指定されたフィールドに対して、辞書に一致すれば置換する
+' 引数   : rs（DAO.Recordset）, fld（DAO.Field）
+'=================================================
+Private Sub ReplaceIfMatch(rs As DAO.Recordset, fld As DAO.Field)
+    Dim val As String
+    val = Nz(fld.value, "")
+    If pDictMapping.Exists(val) Then
+        rs.Fields(fld.Name).value = pDictMapping(val)
+    End If
+End Sub
+
+'=================================================
+' 関数名 : IsInArray
+' 説明   : 指定した文字列が配列内に存在するか確認する
+' 引数   : val（String）, arr（Variant）
+'=================================================
+Private Function IsInArray(val As String, arr As Variant) As Boolean
+    Dim i As Long
+    For i = LBound(arr) To UBound(arr)
+        If arr(i) = val Then
+            IsInArray = True
+            Exit Function
+        End If
+    Next i
+    IsInArray = False
+End Function
+
+
+
+
+'=== [File] acc_clsTableCleaner.cls ===
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "acc_clsTableCleaner"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'=====================================
+' Class Module: acc_clsTableCleaner
+' 説明　：指定テーブルの全レコード削除機能を提供するクラス
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private pDB     As DAO.Database
+Private pTables As Collection
+
+'=================================================
+' サブルーチン名 : Init
+' 機能 : DAO.Database を初期化し、テーブル名格納用の Collection を作成するにゃ
+'=================================================
+Public Sub Init()
+    Set pDB = CurrentDb
+    Set pTables = New Collection
+End Sub
+
+'=================================================
+' サブルーチン名 : AddTable
+' 引数 : tableName - 操作対象として管理するテーブル名
+' 機能 : クレンジングや削除対象として保持するテーブル名をリストに追加するにゃ
+'=================================================
+Public Sub AddTable(tableName As String)
+    pTables.Add tableName
+End Sub
+
+'=================================================
+' サブルーチン名 : ClearAll
+' 機能 : 登録されている全テーブルに対して DELETE 文を発行し、中身を全削除するにゃ
+'        登録済みテーブルは `AddTable` 経由で追加されたものにゃ
+'=================================================
+Public Sub ClearAll()
+    Dim t As Variant
+    For Each t In pTables
+        pDB.Execute "DELETE FROM [" & t & "];", dbFailOnError
+    Next
+End Sub
+
+
+
+'=== [File] acc_clsTableTransfer.cls ===
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "acc_clsTableTransfer"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'=====================================
+' Class Module: acc_clsTableTransfer
+' 説明　：指定テーブル間のデータ削除および挿入による転送機能を提供するクラス
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private pDB        As DAO.Database
+Private pSettings  As Collection
+
+'=================================================
+' サブルーチン名 : Init
+' 引数 : DB（省略可）- 使用する DAO.Database（指定なし時は CurrentDb）
+' 機能 : データベースを初期化し、転送設定（pSettings）用の Collection を作成するにゃ
+'=================================================
+Public Sub Init(Optional DB As DAO.Database)
+    If DB Is Nothing Then
+        Set pDB = CurrentDb
+    Else
+        Set pDB = DB
+    End If
+    Set pSettings = New Collection
+End Sub
+
+'=================================================
+' サブルーチン名 : AddSetting
+' 引数 : srcTable - 転送元テーブル名
+'        tgtTable - 転送先テーブル名
+'        keyField - 削除対象を特定するためのキー列名
+' 機能 : テーブル転送の設定（転送元・転送先・キー）を1件分コレクションに追加するにゃ
+'=================================================
+Public Sub AddSetting(srcTable As String, tgtTable As String, keyField As String)
+    Dim setting As Collection
+    Set setting = New Collection
+    setting.Add srcTable, "Source"
+    setting.Add tgtTable, "Target"
+    setting.Add keyField, "Key"
+    pSettings.Add setting
+End Sub
+
+'=================================================
+' サブルーチン名 : ExecuteAll
+' 機能 : 登録されたすべての転送設定を元に、テーブル転送（TransferTable）を実行するにゃ
+'=================================================
+Public Sub ExecuteAll()
+    Dim setting As Collection
+    For Each setting In pSettings
+        TransferTable CStr(setting("Source")), CStr(setting("Target")), CStr(setting("Key"))
+    Next
+End Sub
+
+'=================================================
+' サブルーチン名 : TransferTable
+' 引数 : src - 転送元テーブル名
+'        tgt - 転送先テーブル名
+'        key - 削除対象キー列名
+' 機能 : 転送先の既存データをキーで削除後、転送元の全件を挿入するにゃ
+'        DELETE + INSERT INTO を連続実行する構造にゃ
+'=================================================
+Private Sub TransferTable(src As String, tgt As String, key As String)
+    Dim sqlDel As String, sqlIns As String
+    sqlDel = "DELETE FROM [" & tgt & "] WHERE [" & key & "] IN (SELECT [" & key & "] FROM [" & src & "]);"
+    pDB.Execute sqlDel, dbFailOnError
+    sqlIns = "INSERT INTO [" & tgt & "] SELECT * FROM [" & src & "];"
+    pDB.Execute sqlIns, dbFailOnError
+End Sub
+
+
+
+'=== [File] acc_clsTableUpdater.cls ===
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "acc_clsTableUpdater"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'=====================================
+' Class Module: acc_clsTableUpdater
+' 説明　：テーブルのレコードセットを操作しフィールド更新を行うクラス
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private pDB    As DAO.Database
+Private pTable As String
+
+'=================================================
+' サブルーチン名 : Init
+' 引数 : tableName - 操作対象のテーブル名
+' 機能 : CurrentDb を初期化し、対象テーブル名を内部に保持するにゃ
+'=================================================
+Public Sub Init(tableName As String)
+    Set pDB = CurrentDb
+    pTable = tableName
+End Sub
+
+'=================================================
+' 関数名 : OpenRS
+' 戻り値 : DAO.Recordset - 対象テーブルのレコードセット（Dynaset）
+' 機能 : 指定テーブルを開いて編集可能なレコードセットを返すにゃ
+'=================================================
+Private Function OpenRS() As DAO.Recordset
+    Set OpenRS = pDB.OpenRecordset(pTable, dbOpenDynaset)
+End Function
+
+'=================================================
+' サブルーチン名 : UpdateFieldFromField
+' 引数 : src - コピー元のフィールド名
+'        tgt - 更新対象のフィールド名
+' 機能 : src の値を tgt にコピーするフィールド更新処理にゃ（NULL補完付き）
+'=================================================
+Public Sub UpdateFieldFromField(src As String, tgt As String)
+    Dim rs As DAO.Recordset
+    Set rs = OpenRS()
+    Do Until rs.EOF
+        rs.Edit
+        rs.Fields(tgt).value = Nz(rs.Fields(src).value, Null)
+        rs.Update
+        rs.MoveNext
+    Loop
+    rs.Close
+End Sub
+
+'=================================================
+' サブルーチン名 : UpdateFieldFromDiff
+' 引数 : a - 被減数フィールド名
+'        b - 減数フィールド名
+'        tgt - 結果を格納するフィールド名
+' 機能 : a - b の結果を tgt に格納する差分計算処理にゃ
+'=================================================
+Public Sub UpdateFieldFromDiff(a As String, b As String, tgt As String)
+    Dim rs As DAO.Recordset
+    Set rs = OpenRS()
+    Do Until rs.EOF
+        rs.Edit
+        rs.Fields(tgt).value = Nz(rs.Fields(a).value, 0) - Nz(rs.Fields(b).value, 0)
+        rs.Update
+        rs.MoveNext
+    Loop
+    rs.Close
+End Sub
+
+'=================================================
+' サブルーチン名 : UpdateFieldByConcat
+' 引数 : a, b - 結合対象のフィールド名
+'        tgt - 結果格納先フィールド名
+' 機能 : a と b の値を "a_b" の形式で連結し、tgt に格納するにゃ
+'=================================================
+Public Sub UpdateFieldByConcat(a As String, b As String, tgt As String)
+    Dim rs As DAO.Recordset
+    Set rs = OpenRS()
+    Do Until rs.EOF
+        rs.Edit
+        rs.Fields(tgt).value = Nz(rs.Fields(a).value, "") & "_" & Nz(rs.Fields(b).value, "")
+        rs.Update
+        rs.MoveNext
+    Loop
+    rs.Close
+End Sub
+
+'=================================================
+' サブルーチン名 : UpdateFieldWithCondition
+' 引数 : condField - 判定用フィールド名
+'        condVal - 比較値
+'        tgt - 更新対象フィールド名
+'        valField - 条件成立時の値取得元フィールド
+'        altFunc - 条件不成立時に呼び出す関数名（Application.Run）
+' 機能 : 条件に応じて valField か altFunc の結果を tgt に設定するにゃ
+'=================================================
+Public Sub UpdateFieldWithCondition(condField As String, condVal As String, tgt As String, valField As String, altFunc As String)
+    Dim rs As DAO.Recordset
+    Set rs = OpenRS()
+    Do Until rs.EOF
+        Dim v As Variant
+        If Nz(rs.Fields(condField).value, "") = condVal Then
+            v = Nz(rs.Fields(valField).value, 0)
+        Else
+            v = Application.Run(altFunc, rs)
+        End If
+        rs.Edit
+        rs.Fields(tgt).value = v
+        rs.Update
+        rs.MoveNext
+    Loop
+    rs.Close
+End Sub
+
+
+
+'=== [File] acc_clsTextSanitizer.cls ===
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "acc_clsTextSanitizer"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'=====================================
+' Class Module: acc_clsTextSanitizer
+' 説明　：Access仮テーブル処理向けの文字列安全化クラス
+'　　　　Null、空文字、制御文字の除去や初期値補完を行う
+' 作成日：2025/04/30
+' 更新日：-
+'=====================================
+
+Option Compare Database
+Option Explicit
+
+' --- 外部公開用関数 ---
+
+'=================================================
+' 関数名 : CleanText
+' 説明   : 値を文字列化し、空白と改行を除去する
+' 引数   : value（Variant）        変換対象の値
+'        : defaultValue（String）  Null時の返却値（既定値: ""）
+' 戻り値 : String                  整形済みの文字列
+'=================================================
+Public Function CleanText(ByVal value As Variant, _
+                          Optional ByVal defaultValue As String = "") As String
+    If IsNull(value) Then
+        CleanText = defaultValue
+    Else
+        CleanText = Trim(Replace(CStr(value), vbCrLf, ""))
+    End If
+End Function    ' ← CleanText 終了
+
+'=================================================
+' 関数名 : IsEmptyText
+' 説明   : 値がNullまたは空文字かを判定する
+' 引数   : value（Variant） 判定対象の値
+' 戻り値 : Boolean           Trueなら空欄、Falseなら値あり
+'=================================================
+Public Function IsEmptyText(ByVal value As Variant) As Boolean
+    If IsNull(value) Then
+        IsEmptyText = True
+    Else
+        IsEmptyText = (Trim(CStr(value)) = "")
+    End If
+End Function    ' ← IsEmptyText 終了
+
+'=================================================
+' 関数名 : RemoveInvisibleChars
+' 説明   : ノンブレークスペースや制御文字を削除する
+' 引数   : value（String） 対象の文字列
+' 戻り値 : String           制御文字を除去した文字列
+'=================================================
+Public Function RemoveInvisibleChars(ByVal value As String) As String
+    Dim cleaned As String
+
+    cleaned = Replace(value, vbTab, "")
+    cleaned = Replace(cleaned, Chr(160), "")    ' ノンブレークスペース
+    cleaned = Replace(cleaned, vbCrLf, "")
+    cleaned = Replace(cleaned, Chr(13), "")
+    cleaned = Replace(cleaned, Chr(10), "")
+
+    RemoveInvisibleChars = Trim(cleaned)
+End Function    ' ← RemoveInvisibleChars 終了
+
+'=================================================
+' 関数名 : CleanWithFallback
+' 説明   : Nullまたは空欄の場合、代替文字列を返す
+' 引数   : value（Variant）        対象の値
+'        : fallback（String）      代替文字列（既定値: "0"）
+' 戻り値 : String                  結果文字列
+'=================================================
+Public Function CleanWithFallback(ByVal value As Variant, _
+                                  Optional ByVal fallback As String = "0") As String
+    If IsNull(value) Or Trim(CStr(value)) = "" Then
+        CleanWithFallback = fallback
+    Else
+        CleanWithFallback = Trim(CStr(value))
+    End If
+End Function    ' ← CleanWithFallback 終了
+
+
+
+
+
+
+'=== [File] acc_clsTransactionManager.cls ===
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "acc_clsTransactionManager"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'=====================================
+' Class Module: acc_clsTransactionManager
+' 説明　：DAOトランザクションの開始・コミット・ロールバックを管理するクラス
+' 作成日：2025/04/25
+' 更新日：再生成 by そうじろう
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private pDB            As DAO.Database
+Private pInTransaction As Boolean
+
+'=================================================
+' サブルーチン名 : Init
+' 引数 : DB - 操作対象の DAO.Database オブジェクト
+' 機能 : データベースを初期化し、トランザクション未開始状態に設定するにゃ
+'=================================================
+Public Sub Init(DB As DAO.Database)
+    Set pDB = DB
+    pInTransaction = False
+End Sub
+
+'=================================================
+' サブルーチン名 : BeginTransaction
+' 機能 : トランザクションを開始するにゃ
+'        すでに開始済みの場合は何もしないように制御してるにゃ
+'=================================================
+Public Sub BeginTransaction()
+    If Not pInTransaction Then
+        pDB.BeginTrans
+        pInTransaction = True
+    End If
+End Sub
+
+'=================================================
+' サブルーチン名 : Commit
+' 機能 : トランザクションをコミットして確定するにゃ
+'        実行中のトランザクションがある場合のみ動作するにゃ
+'=================================================
+Public Sub Commit()
+    If pInTransaction Then
+        pDB.CommitTrans
+        pInTransaction = False
+    End If
+End Sub
+
+'=================================================
+' サブルーチン名 : Rollback
+' 機能 : トランザクションをロールバックして元に戻すにゃ
+'        実行中のトランザクションがある場合のみ動作するにゃ
+'=================================================
+Public Sub Rollback()
+    If pInTransaction Then
+        pDB.Rollback
+        pInTransaction = False
+    End If
+End Sub
+
+
+
