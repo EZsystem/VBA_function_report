@@ -1,4 +1,4 @@
-'=== [ExportDate] 2025-05-14 ===
+'=== [ExportDate] 2025-05-15 ===
 '=== [File] acc_clsDataCleaner.cls ===
 VERSION 1.0 CLASS
 BEGIN
@@ -766,6 +766,182 @@ End Function
 
 
 
+'=== [File] acc_clsFieldTranscriber.cls ===
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "acc_clsFieldTranscriber"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
+'=====================================
+' Class Module: acc_clsFieldTranscriber
+' 説明　：テーブルの任意フィールド間で値を転写する汎用ユーティリティ
+' 作成日：2025/05/12
+' 更新日：2025/05/12
+' 修正履歴：
+' ・Rollback方式をDAO.Workspaceに修正
+' ・フィールド存在チェック（FieldExists）を追加
+' ・マッピング登録時にTrimと空チェックを追加
+'=====================================
+Option Compare Database
+Option Explicit
+
+' --- 内部保持変数 ---
+Private pDB             As DAO.Database
+Private pTableName      As String
+Private pWhereCondition As String
+Private pSkipNulls      As Boolean
+Private pMappings       As Object  ' Scripting.Dictionary
+
+'=================================================
+' サブルーチン名 : Init
+' 説明   : DAO.Database を取得し、テーブル名・設定を初期化する
+'=================================================
+Public Sub Init(Optional TableName As String = "Icube_", _
+                Optional WhereCondition As String = "", _
+                Optional SkipNulls As Boolean = False)
+    Set pDB = CurrentDb
+    pTableName = TableName
+    pWhereCondition = WhereCondition
+    pSkipNulls = SkipNulls
+    Set pMappings = CreateObject("Scripting.Dictionary")
+End Sub
+
+'=================================================
+' サブルーチン名 : AddMapping
+' 説明   : フィールド間転写のマッピングを登録する
+'=================================================
+Public Sub AddMapping(srcField As String, tgtField As String)
+    srcField = Trim(srcField)
+    tgtField = Trim(tgtField)
+    If srcField = "" Or tgtField = "" Then
+        MsgBox "AddMappingエラー：空のフィールド名は登録できませんにゃ", vbExclamation
+        Exit Sub
+    End If
+    pMappings(srcField) = tgtField
+End Sub
+
+'=================================================
+' サブルーチン名 : ClearMappings
+' 説明   : 登録済みの全てのマッピングをクリアする
+'=================================================
+Public Sub ClearMappings()
+    pMappings.RemoveAll
+End Sub
+
+'=================================================
+' サブルーチン名 : TranscribeAll
+' 説明   : 登録されたマッピングに従い、レコード毎にフィールド値を転写する
+'=================================================
+Public Sub TranscribeAll()
+    Dim rs    As DAO.Recordset
+    Dim ws    As DAO.Workspace
+    Dim src   As Variant
+    Dim tgt   As String
+    Dim val   As Variant
+    Dim safeSrc As String, safeTgt As String
+
+    On Error GoTo Err_Handler
+    Set ws = DBEngine.Workspaces(0)
+    ws.BeginTrans
+
+    Set rs = OpenRS()
+    With rs
+        Do While Not .EOF
+            .Edit
+            For Each src In pMappings.Keys
+                safeSrc = Trim(CStr(src))
+                safeTgt = Trim(CStr(pMappings(src)))
+                If safeSrc = "" Or safeTgt = "" Then GoTo NextField
+                If Not FieldExists(.Fields, safeSrc) Then
+                    Debug.Print "srcフィールドなし：" & "[" & safeSrc & "]"
+                    GoTo NextField
+                End If
+                If Not FieldExists(.Fields, safeTgt) Then
+                    Debug.Print "tgtフィールドなし：" & "[" & safeTgt & "]"
+                    GoTo NextField
+                End If
+                val = .Fields(safeSrc).value
+                If Not (pSkipNulls And IsNull(val)) Then
+                    .Fields(safeTgt).value = val
+                End If
+NextField:
+            Next
+            .Update
+            .MoveNext
+        Loop
+        .Close
+    End With
+
+    ws.CommitTrans
+    Exit Sub
+
+Err_Handler:
+    On Error Resume Next
+    If Not rs Is Nothing Then
+        rs.Close
+        Set rs = Nothing
+    End If
+    If Not ws Is Nothing Then
+        If Err.Number > 0 Then ws.Rollback
+    End If
+    MsgBox "【FieldTranscriber】エラー：" & Err.Number & " - " & Err.description, vbCritical
+    Debug.Print "【FieldTranscriber】Err:" & Err.Number & " - " & Err.description
+
+End Sub
+
+'=================================================
+' 関数名 : OpenRS
+' 説明   : 対象テーブルのレコードセットを返す
+'=================================================
+Private Function OpenRS() As DAO.Recordset
+    Dim sql As String
+    sql = "SELECT * FROM [" & pTableName & "]"
+    If pWhereCondition <> "" Then sql = sql & " WHERE " & pWhereCondition
+    Set OpenRS = pDB.OpenRecordset(sql, dbOpenDynaset)
+End Function
+
+'=================================================
+' 関数名 : FieldExists
+' 説明   : 指定フィールド名が存在するか判定する
+'=================================================
+Private Function FieldExists(flds As Fields, fldName As String) As Boolean
+    On Error GoTo Err_Handler
+    Dim f As Field
+    Set f = flds(fldName)
+    FieldExists = True
+    Exit Function
+Err_Handler:
+    FieldExists = False
+End Function
+
+'=================================================
+' プロパティ Let/Get : TableName, WhereCondition, SkipNulls
+'=================================================
+Public Property Let TableName(val As String): pTableName = val: End Property
+Public Property Get TableName() As String: TableName = pTableName: End Property
+
+Public Property Let WhereCondition(val As String): pWhereCondition = val: End Property
+Public Property Get WhereCondition() As String: WhereCondition = pWhereCondition: End Property
+
+Public Property Let SkipNulls(val As Boolean): pSkipNulls = val: End Property
+Public Property Get SkipNulls() As Boolean: SkipNulls = pSkipNulls: End Property
+
+'=================================================
+' クリーンアップ：Class_Terminate
+'=================================================
+Private Sub Class_Terminate()
+    On Error Resume Next
+    Set pMappings = Nothing
+    Set pDB = Nothing
+End Sub
+
+
+
+
 '=== [File] acc_clsTableCleaner.cls ===
 VERSION 1.0 CLASS
 BEGIN
@@ -778,24 +954,82 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 '=====================================
 ' Class Module: acc_clsTableCleaner
-' 説明　：指定テーブルの全レコード削除機能を提供するクラス
+' 説明　：転写元のキーに基づいて、転写先から対象行を削除する専用クラスにゃ
 ' 作成日：2025/04/25
-' 更新日：再生成 by そうじろう
+' 更新日：2025/05/08
 '=====================================
 Option Compare Database
 Option Explicit
 
 ' --- 内部保持変数 ---
-Private pDB     As DAO.Database
+Private pDB        As DAO.Database
+Private pSettings  As Collection
 Private pTables As Collection
 
 '=================================================
 ' サブルーチン名 : Init
-' 機能 : DAO.Database を初期化し、テーブル名格納用の Collection を作成するにゃ
+' 引数 : DB（省略可）- 使用する DAO.Database（指定なし時は CurrentDb）
+' 機能 : データベースを初期化し、削除設定リストを作成するにゃ
 '=================================================
-Public Sub Init()
-    Set pDB = CurrentDb
+Public Sub Init(Optional db As DAO.Database)
+    If db Is Nothing Then
+        Set pDB = CurrentDb
+    Else
+        Set pDB = db
+    End If
+    Set pSettings = New Collection
     Set pTables = New Collection
+End Sub
+
+'=================================================
+' サブルーチン名 : AddSetting
+' 引数 : srcTable（String）- 転写元テーブル名
+'        tgtTable（String）- 転写先テーブル名
+'        keyField（String）- 削除対象キー列名
+' 機能 : 1件の削除設定（元・先・キー）を登録するにゃ
+'=================================================
+Public Sub AddSetting(srcTable As String, tgtTable As String, keyField As String)
+    Dim setting As Collection
+    Set setting = New Collection
+    setting.Add srcTable, "Source"
+    setting.Add tgtTable, "Target"
+    setting.Add keyField, "Key"
+    pSettings.Add setting
+End Sub
+
+'=================================================
+' サブルーチン名 : CleanTarget
+' 機能 : 登録されたすべての設定に対して、転写先テーブルの対象行を削除するにゃ
+'=================================================
+Public Sub CleanTarget()
+    Dim setting As Collection
+    For Each setting In pSettings
+        Call DeleteTargetByKey( _
+            CStr(setting("Source")), _
+            CStr(setting("Target")), _
+            CStr(setting("Key")))
+    Next
+End Sub
+
+'=================================================
+' サブルーチン名 : DeleteTargetByKey
+' 引数 : src（String）- 転写元テーブル名
+'        tgt（String）- 転写先テーブル名
+'        key（String）- 比較用キー列名
+' 機能 : src に存在するキーと一致する tgt の行を削除するにゃ
+'=================================================
+Private Sub DeleteTargetByKey(src As String, tgt As String, key As String)
+    If pDB Is Nothing Then
+        Err.Raise vbObjectError + 1101, "acc_clsTableCleaner", _
+                  "DBが初期化されていないにゃ。Init を先に呼んでにゃ。"
+    End If
+
+    Dim sql As String
+    sql = "DELETE FROM [" & tgt & "] " & _
+          "WHERE [" & key & "] IN (" & _
+          "SELECT [" & key & "] FROM [" & src & "] WHERE [" & key & "] IS NOT NULL);"
+
+    pDB.Execute sql, dbFailOnError
 End Sub
 
 '=================================================
@@ -803,8 +1037,8 @@ End Sub
 ' 引数 : tableName - 操作対象として管理するテーブル名
 ' 機能 : クレンジングや削除対象として保持するテーブル名をリストに追加するにゃ
 '=================================================
-Public Sub AddTable(tableName As String)
-    pTables.Add tableName
+Public Sub AddTable(TableName As String)
+    pTables.Add TableName
 End Sub
 
 '=================================================
@@ -818,7 +1052,6 @@ Public Sub ClearAll()
         pDB.Execute "DELETE FROM [" & t & "];", dbFailOnError
     Next
 End Sub
-
 
 
 '=== [File] acc_clsTableTransfer.cls ===

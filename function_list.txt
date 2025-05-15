@@ -1,5 +1,9 @@
-'=== [ExportDate] 2025-05-14 ===
+'=== [ExportDate] 2025-05-15 ===
 所属フォルダ / 所属ファイル - ファイル種別 - 定義種別 関数名 : 説明
+[com_clsAll] com_clsAccessFetcher.cls - クラス - Function FetchArray : （なし）
+[com_clsAll] com_clsAccessFetcher.cls - クラス - Function FetchFieldNames : （なし）
+[com_clsAll] com_clsAccessFetcher.cls - クラス - Function FetchRecordset : （なし）
+[com_clsAll] com_clsAccessFetcher.cls - クラス - Sub Class_Terminate : （なし）
 [com_clsAll] com_clsArrayHelper.cls - クラス - Function GetColIndex : 配列の1行目（タイトル行）から、列名に対応する列番号を取得するにゃ
 [com_clsAll] com_clsArrayHelper.cls - クラス - Function CalculateOneRow : 指定行の2列間で指定された演算を実行し、必要に応じて丸めて返すにゃ
 [com_clsAll] com_clsArrayHelper.cls - クラス - Function CalculateIfMatch : 指定列の値が条件値と一致する行に対してのみ、計算を実行して返すにゃ
@@ -77,7 +81,17 @@
 [acc_clsAll] acc_clsFieldReplacer.cls - クラス - Sub ReplaceFieldValues : 各レコードの中身を置換マスタに基づいて更新する
 [acc_clsAll] acc_clsFieldReplacer.cls - クラス - Sub ReplaceIfMatch : 指定されたフィールドに対して、辞書に一致すれば置換する
 [acc_clsAll] acc_clsFieldReplacer.cls - クラス - Function IsInArray : 指定した文字列が配列内に存在するか確認する
-[acc_clsAll] acc_clsTableCleaner.cls - クラス - Sub Init : DAO.Database を初期化し、テーブル名格納用の Collection を作成するにゃ
+[acc_clsAll] acc_clsFieldTranscriber.cls - クラス - Sub Init : DAO.Database を取得し、テーブル名・設定を初期化する
+[acc_clsAll] acc_clsFieldTranscriber.cls - クラス - Sub AddMapping : フィールド間転写のマッピングを登録する
+[acc_clsAll] acc_clsFieldTranscriber.cls - クラス - Sub ClearMappings : 登録済みの全てのマッピングをクリアする
+[acc_clsAll] acc_clsFieldTranscriber.cls - クラス - Sub TranscribeAll : 登録されたマッピングに従い、レコード毎にフィールド値を転写する
+[acc_clsAll] acc_clsFieldTranscriber.cls - クラス - Function OpenRS : 対象テーブルのレコードセットを返す
+[acc_clsAll] acc_clsFieldTranscriber.cls - クラス - Function FieldExists : 指定フィールド名が存在するか判定する
+[acc_clsAll] acc_clsFieldTranscriber.cls - クラス - Sub Class_Terminate : （なし）
+[acc_clsAll] acc_clsTableCleaner.cls - クラス - Sub Init : データベースを初期化し、削除設定リストを作成するにゃ
+[acc_clsAll] acc_clsTableCleaner.cls - クラス - Sub AddSetting : 1件の削除設定（元・先・キー）を登録するにゃ
+[acc_clsAll] acc_clsTableCleaner.cls - クラス - Sub CleanTarget : 登録されたすべての設定に対して、転写先テーブルの対象行を削除するにゃ
+[acc_clsAll] acc_clsTableCleaner.cls - クラス - Sub DeleteTargetByKey : src に存在するキーと一致する tgt の行を削除するにゃ
 [acc_clsAll] acc_clsTableCleaner.cls - クラス - Sub AddTable : クレンジングや削除対象として保持するテーブル名をリストに追加するにゃ
 [acc_clsAll] acc_clsTableCleaner.cls - クラス - Sub ClearAll : 登録されている全テーブルに対して DELETE 文を発行し、中身を全削除するにゃ
 [acc_clsAll] acc_clsTableTransfer.cls - クラス - Sub Init : データベースを初期化し、転送設定（pSettings）用の Collection を作成するにゃ
@@ -98,6 +112,13 @@
 [acc_clsAll] acc_clsTransactionManager.cls - クラス - Sub BeginTransaction : トランザクションを開始するにゃ
 [acc_clsAll] acc_clsTransactionManager.cls - クラス - Sub Commit : トランザクションをコミットして確定するにゃ
 [acc_clsAll] acc_clsTransactionManager.cls - クラス - Sub Rollback : トランザクションをロールバックして元に戻すにゃ
+[xl_clsAll] xl_clsNameManager.cls - クラス - Sub Init : 初期化にゃ
+[xl_clsAll] xl_clsNameManager.cls - クラス - Sub AddName : 登録キューに追加するにゃ
+[xl_clsAll] xl_clsNameManager.cls - クラス - Sub RemoveName : 削除キューに登録するにゃ
+[xl_clsAll] xl_clsNameManager.cls - クラス - Sub Commit : 登録・削除を実行するにゃ
+[xl_clsAll] xl_clsNameManager.cls - クラス - Function NameExists : 名前が既に存在するか確認するにゃ（スコープ付きにも対応）
+[xl_clsAll] xl_clsNameManager.cls - クラス - Function ListDefinedNames : 現在定義されている名前一覧を返すにゃ
+[xl_clsAll] xl_clsNameManager.cls - クラス - Sub Clean_XlfnNames : "_xlfn." を含む名前定義をすべて削除するにゃ
 [xl_clsAll] xl_clsRangeAccessor.cls - クラス - Function RangeToArray : 指定範囲の値を配列として取得するにゃ
 [xl_clsAll] xl_clsRangeAccessor.cls - クラス - Sub ArrayToRange : 配列データを指定範囲に一括で書き込むにゃ
 [xl_clsAll] xl_clsRangeAccessor.cls - クラス - Function GetLastRow : 指定列の最下端までのうち、最終データ行を取得するにゃ
@@ -141,6 +162,10 @@
 [xl_modAll] xl_mod_ConditionalFormattingUtilities.bas - 標準モジュール - Sub AddColorScaleCF : 3色スケールの条件付き書式を追加
 [xl_modAll] xl_mod_ConditionalFormattingUtilities.bas - 標準モジュール - Sub ClearCF : 条件付き書式をクリア
 [xl_modAll] xl_mod_ConditionalFormattingUtilities.bas - 標準モジュール - Function ListCF : 条件付き書式の種類を一覧で取得
+[xl_modAll] xl_mod_NameUtilities.bas - 標準モジュール - Function SanitizeNameString : 名前定義に適した文字列に変換するにゃ
+[xl_modAll] xl_mod_NameUtilities.bas - 標準モジュール - Function IsValidName : Excelの名前定義として有効かどうかを検証するにゃ
+[xl_modAll] xl_mod_NameUtilities.bas - 標準モジュール - Function NameExists : ブック内に既に存在する名前かどうかを判定するにゃ
+[xl_modAll] xl_mod_NameUtilities.bas - 標準モジュール - Sub DeleteName : 指定された名前定義を削除するにゃ（存在しない場合は無視）
 [xl_modAll] xl_mod_PivotUtilities.bas - 標準モジュール - Sub CreatePivotTable : ピボットテーブルを作成
 [xl_modAll] xl_mod_PivotUtilities.bas - 標準モジュール - Sub RefreshPivotTable : ピボットテーブルを更新
 [xl_modAll] xl_mod_RangeUtilities.bas - 標準モジュール - Sub FindAndReplace : 範囲内で検索と置換
